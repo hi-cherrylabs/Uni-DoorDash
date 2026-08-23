@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// Uni Door Dash — Firestore security rules.
+//
+// Deploy with: firebase deploy --only firestore:rules
+// (or paste into Firebase Console → Firestore Database → Rules → Publish)
+//
+// This is the layer that actually enforces "only hello.cherrylabs@gmail.com
+// can post products / manage orders" — the checks in the React app
+// (isAdmin, the /dashboard route guard, etc.) are UX, not security. Anyone
+// could open devtools and call the Firestore SDK directly, bypassing all of
+// that. These rules are what stops them.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == "hello.cherrylabs@gmail.com";
+    }
+
+    // ---- products ----
+    // Anyone (including signed-out visitors) can browse the catalog.
+    // Only the admin account can post, edit, or remove a listing.
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---- orders ----
+    // A signed-in shopper can place an order for themselves, and can read
+    // only their own orders. The admin can read every order (Order
+    // Progress tab) and is the only one allowed to change an order's
+    // status (confirm/decline). Nobody can delete an order.
+    match /orders/{orderId} {
+      allow create: if isSignedIn()
+                    && request.resource.data.buyerEmail == request.auth.token.email
+                    && request.resource.data.status == "queued";
+
+      allow read: if isAdmin()
+                  || (isSignedIn() && resource.data.buyerEmail == request.auth.token.email);
+
+      // Only the admin can change status; the order's identity (who
+      // bought what) can't be rewritten by anyone.
+      allow update: if isAdmin()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]);
+
+      allow delete: if false;
+    }
+  }
+}

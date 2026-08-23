@@ -1,0 +1,4 @@
+{
+  "installCommand": "npm install --foreground-scripts",
+  "buildCommand": "npm run build"
+}
