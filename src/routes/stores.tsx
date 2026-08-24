@@ -75,7 +75,7 @@ function Page() {
 
       <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div
-          className="flex h-16 flex-1 items-center gap-3 rounded-full px-5 shadow-lg backdrop-blur-xl sm:max-w-[280px]"
+          className="flex h-16 flex-1 items-center gap-3 rounded-full px-6 sm:px-5 shadow-lg backdrop-blur-xl sm:max-w-[280px]"
           style={{
             border: `1px solid ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
             backgroundColor: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
@@ -86,7 +86,7 @@ function Page() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search stores…"
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent text-lg sm:text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
         <FilterDropdown options={SPECIALTIES} value={specialty} onChange={setSpecialty} />

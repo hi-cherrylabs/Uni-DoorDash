@@ -11,7 +11,6 @@ import {
   Plus,
   Shield,
   ShoppingBag,
-  ShoppingCart,
   Store,
   Sun,
   UserPlus,
@@ -24,6 +23,7 @@ import { useTheme } from "@/components/theme-provider";
 import { useSidebar } from "@/components/sidebar-provider";
 import { MobileDock } from "@/components/mobile/mobile-dock";
 import { AccountMenu } from "@/components/account-menu";
+import { CartMenu } from "@/components/cart-menu";
 
 
 function ShopNowButton({ collapsed = false }: { collapsed?: boolean }) {
@@ -86,7 +86,7 @@ export function AppLayout({
 
   return (
     <div
-      className="relative flex h-screen w-full overflow-hidden text-foreground"
+      className="relative flex h-dvh w-full overflow-hidden text-foreground"
       style={{ backgroundColor: "var(--app-sidebar-flat)" }}
     >
       <aside
@@ -222,28 +222,21 @@ export function AppLayout({
           }}
         >
           {variant === "gradient" && <div className="panel-veil" />}
-          <div className="relative z-10 h-full overflow-y-auto">
+          <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden mobile-scroll-hide">
             <div className="page-enter mobile-page px-5 py-8 sm:px-8 md:px-12">{children}</div>
           </div>
         </main>
       </div>
 
       <div className="fixed right-6 top-6 z-50 hidden gap-3 md:flex">
-        <button
-          type="button"
-          title="Cart"
-          className="grid size-11 place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--cherry-deep)" }}
-        >
-          <ShoppingCart className="size-5" />
-        </button>
+        <CartMenu size={44} />
         <button
           type="button"
           title="Mail"
           className="grid size-11 place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--cherry-deep)" }}
         >
-          <Mail className="size-5" />
+          <Mail className="size-5" style={{ color: "#fff" }} />
         </button>
         <AccountMenu size={44} />
       </div>

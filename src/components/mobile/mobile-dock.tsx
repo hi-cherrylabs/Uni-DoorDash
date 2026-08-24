@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Mail, Menu, Moon, Plus, Shield, ShoppingCart, Sun, UserPlus, X } from "lucide-react";
+import { Heart, Mail, Menu, Moon, Plus, Shield, Sun, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import logo from "@/assets/udd-logo.png";
@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth-provider";
 import { useTheme } from "@/components/theme-provider";
 import { TextRoll } from "@/components/mobile/text-roll";
 import { AccountMenu } from "@/components/account-menu";
+import { CartMenu } from "@/components/cart-menu";
 
 const BASE_MENU_ITEMS = [
   { name: "Shop now", href: "/" },
@@ -43,13 +44,7 @@ export function MobileDock() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              title="Cart"
-              className="grid size-9 place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
-            >
-              <ShoppingCart className="size-[18px]" />
-            </button>
+            <CartMenu size={36} />
             <button
               type="button"
               title="Menu"

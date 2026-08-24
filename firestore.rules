@@ -33,8 +33,12 @@ service cloud.firestore {
     // ---- orders ----
     // A signed-in shopper can place an order for themselves, and can read
     // only their own orders. The admin can read every order (Order
-    // Progress tab) and is the only one allowed to change an order's
-    // status (confirm/decline). Nobody can delete an order.
+    // Progress tab) and change its status/resolvedAt (confirm/decline/
+    // mark delivered). A buyer can also cancel their OWN still-active
+    // order (queued or confirmed only — not something already finished),
+    // and can hide their own finished orders from their own history view
+    // via hiddenFromBuyerAt — which never affects what the admin sees.
+    // Nobody can delete an order — history is permanent on the admin side.
     match /orders/{orderId} {
       allow create: if isSignedIn()
                     && request.resource.data.buyerEmail == request.auth.token.email
@@ -43,10 +47,22 @@ service cloud.firestore {
       allow read: if isAdmin()
                   || (isSignedIn() && resource.data.buyerEmail == request.auth.token.email);
 
-      // Only the admin can change status; the order's identity (who
-      // bought what) can't be rewritten by anyone.
-      allow update: if isAdmin()
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]);
+      allow update: if (
+                      isAdmin()
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "resolvedAt"])
+                    )
+                    || (
+                      isSignedIn()
+                      && resource.data.buyerEmail == request.auth.token.email
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "resolvedAt"])
+                      && request.resource.data.status == "cancelled"
+                      && (resource.data.status == "queued" || resource.data.status == "confirmed")
+                    )
+                    || (
+                      isSignedIn()
+                      && resource.data.buyerEmail == request.auth.token.email
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["hiddenFromBuyerAt"])
+                    );
 
       allow delete: if false;
     }

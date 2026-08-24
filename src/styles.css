@@ -4,6 +4,14 @@
 
 @custom-variant light (&:is(.light *));
 
+/* Prevent any page-level horizontal scrollbar regardless of cause — this
+   app is a full-screen app-like layout (fixed-height shell, its own
+   internal scroll containers), never a page meant to scroll sideways. */
+html,
+body {
+  overflow-x: hidden;
+}
+
 /*
  * UniDoorDash design system — tokens and custom classes carried over
  * verbatim from the original design. Edit values here to restyle the app.
@@ -742,6 +750,29 @@
     padding-left: 12px !important;
     padding-right: 12px !important;
   }
+  /* Dark mode only, mobile only — desktop keeps #1e1e1e untouched. #1e1e1e
+     was tuned for desktop monitors; on phone OLED/AMOLED panels it reads as
+     a lit, slightly warm gray rather than "off", especially next to the
+     mobile dock's darker chrome. #141414 is a deliberate middle ground: a
+     real visible drop from #1e1e1e, but still clearly lighter than the
+     dock's near-black chrome (keeps the floating-panel depth effect intact)
+     and still gives the liquid-glass surfaces (profile popover especially,
+     which has no scrim behind it) enough tonal variation to blur/saturate
+     into something rich rather than flat smoked glass. */
+  :root:not(.light) {
+    --app-main-flat: #141414;
+  }
+  /* Hides the visible scrollbar track/thumb on the main content scroll
+     area — scrolling still works exactly the same, just without the
+     chrome, matching an app-like feel. Desktop keeps normal, visible
+     scrollbars (expected there, not requested to change). */
+  .mobile-scroll-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .mobile-scroll-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ---------- Liquid glass surfaces (sign-in card, profile card, order confirm) ----------
@@ -785,7 +816,6 @@
   border: 1px solid var(--glass-border) !important;
   backdrop-filter: blur(28px) saturate(190%);
   box-shadow: var(--glass-shadow) !important;
-  position: relative;
   overflow: hidden;
   color: var(--glass-text);
   --foreground: var(--glass-text);
@@ -816,6 +846,14 @@
 @media (max-width: 480px) {
   .glass-card {
     width: 92vw;
+  }
+}
+/* On mobile there's a fixed top nav bar (see .mobile-dock, z-index above the
+   default dialog layer) — center the card in the space below it rather than
+   the full viewport, so it never renders partly hidden under that bar. */
+@media (max-width: 767px) {
+  .glass-card {
+    top: calc(50% + 32px);
   }
 }
 

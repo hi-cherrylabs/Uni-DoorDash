@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/sidebar-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import { CartUIProvider } from "@/components/cart-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -125,15 +126,16 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <SidebarProvider>
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-              <Toaster position="bottom-center" />
-            </SidebarProvider>
+            <CartUIProvider>
+              <SidebarProvider>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+                <Toaster position="bottom-center" />
+              </SidebarProvider>
+            </CartUIProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </RootDocument>
   );
 }
-

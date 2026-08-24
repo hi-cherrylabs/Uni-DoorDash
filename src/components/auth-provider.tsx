@@ -182,6 +182,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOutUser = useCallback(async () => {
     await firebaseSignOut(getFirebaseAuth());
+    // Deliberate exception to the "only auto-opens once, ever" rule: a
+    // logout is an explicit user action, and re-prompting for sign-in
+    // right after is expected here — unlike buy/cart/create-a-piece,
+    // which never trigger the card automatically.
+    setError(null);
+    setDialogOpen(true);
   }, []);
 
   // Legacy bridge, kept only in case any other script still reads

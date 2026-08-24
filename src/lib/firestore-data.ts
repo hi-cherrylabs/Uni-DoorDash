@@ -6,7 +6,9 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  writeBatch,
   doc,
+  where,
   Timestamp,
 } from "firebase/firestore";
 
@@ -76,12 +78,21 @@ export async function createProduct(input: NewProductInput): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Orders — created by any signed-in shopper on "Buy now", read by the admin
-// on the dashboard's Order Progress tab (and, implicitly, only ever queried
-// for a single buyer's own email elsewhere — see security rules).
+// Orders — created by any signed-in shopper on "Buy now". Lifecycle:
+//   queued -> confirmed -> delivered   (admin approves, then marks delivered)
+//   queued -> declined                 (admin rejects)
+//   queued | confirmed -> cancelled    (buyer cancels it themselves)
+// `resolvedAt` is stamped the moment a status becomes terminal (declined,
+// delivered, cancelled) — it's what the buyer's cart popover uses to know
+// when to quietly stop showing a finished order (still-active queued/
+// confirmed orders are never time-limited). `hiddenFromBuyerAt` is separate:
+// it's only ever set by the buyer's own "clear history" action, and only
+// affects what that buyer sees — the admin's view never filters on it.
 // ---------------------------------------------------------------------------
 
-export type OrderStatus = "queued" | "confirmed" | "declined";
+export type OrderStatus = "queued" | "confirmed" | "declined" | "cancelled" | "delivered";
+
+export const TERMINAL_STATUSES: OrderStatus[] = ["declined", "cancelled", "delivered"];
 
 export type FirestoreOrder = {
   id: string;
@@ -92,7 +103,10 @@ export type FirestoreOrder = {
   status: OrderStatus;
   buyerEmail: string;
   buyerName: string | null;
+  sellerName: string | null;
   createdAt: Timestamp | null;
+  resolvedAt: Timestamp | null;
+  hiddenFromBuyerAt: Timestamp | null;
 };
 
 export function subscribeToAllOrders(
@@ -113,6 +127,30 @@ export function subscribeToAllOrders(
   );
 }
 
+/** Realtime feed of a single buyer's own orders — powers the cart popover + history view. */
+export function subscribeToUserOrders(
+  email: string,
+  onChange: (orders: FirestoreOrder[]) => void,
+  onError?: (error: unknown) => void,
+) {
+  const q = query(
+    collection(getFirestoreDb(), ORDERS_COLLECTION),
+    where("buyerEmail", "==", email),
+    orderBy("createdAt", "desc"),
+  );
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const orders = snapshot.docs.map((d) => {
+        const data = d.data() as Omit<FirestoreOrder, "id">;
+        return { ...data, id: d.id } satisfies FirestoreOrder;
+      });
+      onChange(orders);
+    },
+    onError,
+  );
+}
+
 export type NewOrderInput = {
   productId: string;
   productName: string;
@@ -120,6 +158,7 @@ export type NewOrderInput = {
   price: number;
   buyerEmail: string;
   buyerName: string | null;
+  sellerName: string | null;
 };
 
 export async function placeOrder(input: NewOrderInput): Promise<void> {
@@ -131,12 +170,37 @@ export async function placeOrder(input: NewOrderInput): Promise<void> {
     status: "queued" satisfies OrderStatus,
     buyerEmail: input.buyerEmail,
     buyerName: input.buyerName,
+    sellerName: input.sellerName,
     createdAt: serverTimestamp(),
+    resolvedAt: null,
+    hiddenFromBuyerAt: null,
   });
 }
 
+/** Admin only — confirm/decline a queued order, or mark a confirmed one delivered. */
 export async function setOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
-  await updateDoc(doc(getFirestoreDb(), ORDERS_COLLECTION, orderId), { status });
+  await updateDoc(doc(getFirestoreDb(), ORDERS_COLLECTION, orderId), {
+    status,
+    resolvedAt: TERMINAL_STATUSES.includes(status) ? serverTimestamp() : null,
+  });
+}
+
+/** Buyer only — cancel their own order while it's still queued or confirmed. */
+export async function cancelOrderAsBuyer(orderId: string): Promise<void> {
+  await updateDoc(doc(getFirestoreDb(), ORDERS_COLLECTION, orderId), {
+    status: "cancelled" satisfies OrderStatus,
+    resolvedAt: serverTimestamp(),
+  });
+}
+
+/** Buyer only — hides the given orders from their own history view. Admin's view is untouched. */
+export async function clearBuyerHistory(orderIds: string[]): Promise<void> {
+  if (orderIds.length === 0) return;
+  const batch = writeBatch(getFirestoreDb());
+  for (const id of orderIds) {
+    batch.update(doc(getFirestoreDb(), ORDERS_COLLECTION, id), { hiddenFromBuyerAt: serverTimestamp() });
+  }
+  await batch.commit();
 }
 
 // ---------------------------------------------------------------------------

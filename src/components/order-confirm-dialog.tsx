@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/components/auth-provider";
+import { useCartUI } from "@/components/cart-provider";
 import { placeOrder } from "@/lib/firestore-data";
 import type { Product } from "@/data/catalog";
 
@@ -16,6 +17,7 @@ export function OrderConfirmDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { user } = useAuth();
+  const { pulse } = useCartUI();
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(false);
 
@@ -32,11 +34,17 @@ export function OrderConfirmDialog({
         price: product!.price,
         buyerEmail: user.email,
         buyerName: user.name,
+        sellerName: product!.seller.name,
       });
       setPlaced(true);
       setTimeout(() => {
         onOpenChange(false);
         setPlaced(false);
+        // Confirm-dialog's own success message closes after ~1.3s; the
+        // cart popover then auto-opens for 3s as the "something just
+        // happened, come look" cue — it cancels its own auto-close the
+        // moment the buyer interacts with it.
+        pulse();
       }, 1300);
     } catch {
       toast.error("Couldn't place that order. Please try again.");
