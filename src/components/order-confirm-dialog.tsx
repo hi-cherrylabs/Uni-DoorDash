@@ -37,14 +37,16 @@ export function OrderConfirmDialog({
         sellerName: product!.seller.name,
       });
       setPlaced(true);
+      // Step 1: Hold the success screen for 1.3 s so the buyer can read it.
       setTimeout(() => {
-        onOpenChange(false);
+        onOpenChange(false); // close dialog
         setPlaced(false);
-        // Confirm-dialog's own success message closes after ~1.3s; the
-        // cart popover then auto-opens for 3s as the "something just
-        // happened, come look" cue — it cancels its own auto-close the
-        // moment the buyer interacts with it.
-        pulse();
+        // Step 2: Wait 1 s AFTER the dialog closes, then open the cart
+        // popover for 3 s (pulse).  Firing pulse() in the same tick as
+        // onOpenChange(false) caused a React state-batch race where the
+        // setOpen(false) from the Popover's onOpenChange and the
+        // setOpenState(true) from pulse() resolved in the wrong order.
+        setTimeout(() => pulse(), 1000);
       }, 1300);
     } catch {
       toast.error("Couldn't place that order. Please try again.");
