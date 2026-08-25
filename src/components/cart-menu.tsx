@@ -103,7 +103,6 @@ export function CartMenu({ size = 44 }: { size?: number }) {
         <button
           type="button"
           title="Your orders"
-          onClick={markInteracted}
           className="grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--cherry-deep)", width: size, height: size }}
         >
