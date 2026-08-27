@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 import { CreatePieceForm } from "@/components/dashboard/create-piece-form";
 import { NotificationsButton } from "@/components/dashboard/notifications-button";
 import { OrderProgressList } from "@/components/dashboard/order-progress-list";
+import { ProductManagement } from "@/components/dashboard/product-management";
 import { SegmentedToggle } from "@/components/dashboard/segmented-toggle";
 import { StorageButton } from "@/components/dashboard/storage-button";
 
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/dashboard")({
   component: Page,
 });
 
-const TABS: string[] = ["Create a Piece", "Order Progress"];
+const TABS: string[] = ["Create a Piece", "Order Progress", "Management"];
 
 function Page() {
   const { ready, user, isAdmin } = useAuth();
@@ -69,6 +70,7 @@ function Page() {
 
       {tab === "Create a Piece" && <CreatePieceForm />}
       {tab === "Order Progress" && <OrderProgressList />}
+      {tab === "Management" && <ProductManagement />}
     </AppLayout>
   );
 }

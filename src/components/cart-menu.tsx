@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ShoppingCart, Truck, X } from "lucide-react";
+import { Check, Truck, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { Timestamp } from "firebase/firestore";
@@ -41,9 +41,11 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   delivered: "Delivered",
 };
 
-export function CartMenu({ size = 44 }: { size?: number }) {
+const OPTIMISTIC_ID_PREFIX = "optimistic-";
+
+export function CartMenu({ size = 44, variant = "filled" }: { size?: number; variant?: "filled" | "minimal" }) {
   const { user } = useAuth();
-  const { open, setOpen, markInteracted } = useCartUI();
+  const { open, setOpen, markInteracted, optimisticOrders } = useCartUI();
   const [orders, setOrders] = useState<FirestoreOrder[] | null>(null);
   const [view, setView] = useState<"list" | "history">("list");
   const [tab, setTab] = useState<Tab>("Pending");
@@ -68,12 +70,39 @@ export function CartMenu({ size = 44 }: { size?: number }) {
 
   if (!user) return null;
 
-  const all = orders ?? [];
+  const real = orders ?? [];
+  // Once the real order (matching productId, placed in roughly the same
+  // window) shows up via onSnapshot, stop showing its optimistic stand-in
+  // — avoids a brief duplicate row while both are technically present.
+  const optimisticDisplay: FirestoreOrder[] = optimisticOrders
+    .filter(
+      (o) =>
+        !real.some(
+          (r) => r.productId === o.productId && Math.abs((r.createdAt?.toMillis() ?? 0) - o.createdAtMs) < 20000,
+        ),
+    )
+    .map((o) => ({
+      id: `${OPTIMISTIC_ID_PREFIX}${o.tempId}`,
+      productId: o.productId,
+      productName: o.productName,
+      productImage: o.productImage,
+      price: o.price,
+      status: "queued",
+      buyerEmail: user.email ?? "",
+      buyerUid: user.uid,
+      buyerName: user.name,
+      sellerName: o.sellerName,
+      createdAt: null,
+      resolvedAt: null,
+      hiddenFromBuyerAt: null,
+    }));
+
+  const all = [...optimisticDisplay, ...real];
   const pending = all.filter(
     (o) => o.status === "queued" || ((o.status === "declined" || o.status === "cancelled") && isRecent(o)),
   );
   const progress = all.filter((o) => o.status === "confirmed" || (o.status === "delivered" && isRecent(o)));
-  const history = all.filter((o) => !o.hiddenFromBuyerAt);
+  const history = real.filter((o) => !o.hiddenFromBuyerAt);
   const hasAnyActive = pending.length > 0 || progress.length > 0;
   const activeList = tab === "Pending" ? pending : progress;
 
@@ -100,14 +129,24 @@ export function CartMenu({ size = 44 }: { size?: number }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          title="Your orders"
-          className="grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--cherry-deep)", width: size, height: size }}
-        >
-          <ShoppingCart className="size-1/2" />
-        </button>
+        {variant === "minimal" ? (
+          <button
+            type="button"
+            title="Your orders"
+            className="grid size-9 place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
+          >
+            <Truck className="size-[18px]" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            title="Your orders"
+            className="grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "var(--cherry-deep)", width: size, height: size }}
+          >
+            <Truck className="size-1/2" />
+          </button>
+        )}
       </PopoverTrigger>
 
       <PopoverContent
@@ -207,7 +246,9 @@ export function CartMenu({ size = 44 }: { size?: number }) {
                       <p className="py-6 text-center text-xs text-muted-foreground">Nothing here right now.</p>
                     )}
                     {activeList.map((order) => {
-                      const isActionable = order.status === "queued" || order.status === "confirmed";
+                      const isOptimistic = order.id.startsWith(OPTIMISTIC_ID_PREFIX);
+                      const isActionable =
+                        !isOptimistic && (order.status === "queued" || order.status === "confirmed");
                       const isFlagged = order.status === "declined" || order.status === "cancelled";
                       const isSuccess = order.status === "delivered";
                       return (
@@ -225,6 +266,7 @@ export function CartMenu({ size = 44 }: { size?: number }) {
                               : isSuccess
                                 ? "rgba(16,185,129,0.08)"
                                 : undefined,
+                            opacity: isOptimistic ? 0.75 : 1,
                           }}
                         >
                           <img
@@ -237,9 +279,17 @@ export function CartMenu({ size = 44 }: { size?: number }) {
                             <p className="truncate text-[11px] text-muted-foreground">
                               {formatDate(order.createdAt)} · {order.sellerName ?? "Uni Door Dash"}
                             </p>
-                            <p className="truncate text-[11px] font-semibold">{STATUS_LABEL[order.status]}</p>
+                            <p className="truncate text-[11px] font-semibold">
+                              {isOptimistic ? "Placing order…" : STATUS_LABEL[order.status]}
+                            </p>
                           </div>
-                          {order.status === "confirmed" && (
+                          {isOptimistic && (
+                            <span
+                              className="size-4 shrink-0 animate-spin rounded-full border-2 border-t-transparent"
+                              style={{ borderColor: "rgba(22,24,28,0.25)", borderTopColor: "transparent" }}
+                            />
+                          )}
+                          {!isOptimistic && order.status === "confirmed" && (
                             <span
                               className="size-4 shrink-0 animate-spin rounded-full border-2 border-t-transparent"
                               style={{ borderColor: "rgba(22,24,28,0.25)", borderTopColor: "transparent" }}

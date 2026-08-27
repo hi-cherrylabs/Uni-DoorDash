@@ -1,6 +1,12 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
+import { getMessaging, isSupported as isMessagingSupported, type Messaging } from "firebase/messaging";
 
 // Single source of truth for who the admin is. The dashboard nav link, the
 // /dashboard route guard, the "Create a Piece" form, and the Firestore
@@ -45,12 +51,49 @@ export function getFirebaseAuth() {
 // Firestore's modular SDK *can* run during SSR, but this app's product/order
 // data is read via realtime onSnapshot listeners designed for the browser,
 // so — same as auth — we only ever touch it client-side, after hydration.
+//
+// Initialized with persistentLocalCache (IndexedDB-backed) rather than the
+// plain in-memory client: this means onSnapshot listeners can serve cached
+// results immediately on page load — before the network round-trip even
+// completes — then transparently reconcile with the server. This is what
+// actually fixes "orders disappear on refresh": without it, every reload
+// started from a genuinely empty local state until Firestore reconnected.
+// persistentMultipleTabManager lets multiple open tabs share one cache
+// instead of fighting over a lock.
 let firestoreInstance: ReturnType<typeof getFirestore> | undefined;
 
 export function getFirestoreDb() {
   if (typeof window === "undefined") {
     throw new Error("getFirestoreDb() must only be called in the browser.");
   }
-  firestoreInstance ??= getFirestore(firebaseApp);
+  if (!firestoreInstance) {
+    try {
+      firestoreInstance = initializeFirestore(firebaseApp, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      });
+    } catch {
+      // initializeFirestore throws if Firestore was already touched via
+      // getFirestore() elsewhere first, or in environments where
+      // IndexedDB isn't available (some private-browsing modes). Fall
+      // back to the plain in-memory client so the app still works —
+      // just without the offline cache.
+      firestoreInstance = getFirestore(firebaseApp);
+    }
+  }
   return firestoreInstance;
+}
+
+// Cloud Messaging (push notifications). Not every environment supports it
+// (Safari has partial support, some private-browsing modes block it
+// entirely, and it always requires a service worker) — isSupported() checks
+// this at runtime rather than assuming, and callers should treat a null
+// return as "push just isn't available here", not an error.
+let messagingInstance: Messaging | undefined;
+
+export async function getMessagingClient(): Promise<Messaging | null> {
+  if (typeof window === "undefined") return null;
+  if (messagingInstance) return messagingInstance;
+  if (!(await isMessagingSupported())) return null;
+  messagingInstance = getMessaging(firebaseApp);
+  return messagingInstance;
 }

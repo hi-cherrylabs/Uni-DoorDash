@@ -4,7 +4,9 @@ import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/components/auth-provider";
 import { useCartUI } from "@/components/cart-provider";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { placeOrder } from "@/lib/firestore-data";
+import { notifyAdminNewOrder } from "@/server/push-notify";
 import type { Product } from "@/data/catalog";
 
 export function OrderConfirmDialog({
@@ -17,7 +19,7 @@ export function OrderConfirmDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { user } = useAuth();
-  const { pulse } = useCartUI();
+  const { pulse, addOptimisticOrder, removeOptimisticOrder } = useCartUI();
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(false);
 
@@ -26,6 +28,21 @@ export function OrderConfirmDialog({
   async function handleConfirm() {
     if (!user?.email) return; // guarded by caller, but keep TS + runtime honest
     setPlacing(true);
+
+    // Show something in the cart popover THE INSTANT the buyer confirms —
+    // don't wait for the network round-trip. On a slow connection that
+    // round-trip can take seconds, and a popup that opens to an empty
+    // state right after "you just bought something" reads as broken, even
+    // though the order is actually fine. The real onSnapshot update
+    // (or, worst case, the 12s safety-net timeout) takes over from here.
+    const tempId = addOptimisticOrder({
+      productId: product!.id,
+      productName: product!.name,
+      productImage: product!.image,
+      price: product!.price,
+      sellerName: product!.seller.name,
+    });
+
     try {
       await placeOrder({
         productId: product!.id,
@@ -33,22 +50,39 @@ export function OrderConfirmDialog({
         productImage: product!.image,
         price: product!.price,
         buyerEmail: user.email,
+        buyerUid: user.uid,
         buyerName: user.name,
         sellerName: product!.seller.name,
       });
+      removeOptimisticOrder(tempId);
       setPlaced(true);
-      // Step 1: Hold the success screen for 1.3 s so the buyer can read it.
+
+      // Best-effort — push notifications are a nice-to-have. A failure here
+      // (e.g. push isn't configured on the server yet) must never block or
+      // fail the order itself, which has already succeeded at this point.
+      void (async () => {
+        try {
+          const idToken = await getFirebaseAuth().currentUser?.getIdToken();
+          if (!idToken) return;
+          await notifyAdminNewOrder({
+            data: { idToken, productName: product!.name, buyerName: user.name },
+          });
+        } catch {
+          /* silent — see comment above */
+        }
+      })();
+
       setTimeout(() => {
-        onOpenChange(false); // close dialog
+        onOpenChange(false);
         setPlaced(false);
-        // Step 2: Wait 1 s AFTER the dialog closes, then open the cart
-        // popover for 3 s (pulse).  Firing pulse() in the same tick as
-        // onOpenChange(false) caused a React state-batch race where the
-        // setOpen(false) from the Popover's onOpenChange and the
-        // setOpenState(true) from pulse() resolved in the wrong order.
-        setTimeout(() => pulse(), 1000);
+        // Confirm-dialog's own success message closes after ~1.3s; the
+        // cart popover then auto-opens for 3s as the "something just
+        // happened, come look" cue — it cancels its own auto-close the
+        // moment the buyer interacts with it.
+        pulse();
       }, 1300);
     } catch {
+      removeOptimisticOrder(tempId);
       toast.error("Couldn't place that order. Please try again.");
     } finally {
       setPlacing(false);

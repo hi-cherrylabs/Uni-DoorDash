@@ -3,11 +3,11 @@ import { Clock, Heart, Search } from "lucide-react";
 import { type CSSProperties, useMemo, useState } from "react";
 
 import { AppLayout } from "@/components/app-layout";
-import { CommunityListings } from "@/components/home/community-listings";
 import { ProductCard } from "@/components/home/product-card";
 import { SegmentedControl } from "@/components/segmented-control";
 import { useTheme } from "@/components/theme-provider";
-import { CATEGORIES, PRODUCTS } from "@/data/catalog";
+import { CATEGORIES } from "@/data/catalog";
+import { useAllVisibleProducts } from "@/hooks/use-products";
 import marketHero from "@/assets/udd-market.png";
 
 export const Route = createFileRoute("/market-place")({
@@ -32,19 +32,20 @@ function MarketPlacePage() {
   const { dark } = useTheme();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>(FILTER_OPTIONS[0] ?? "All");
+  const allProducts = useAllVisibleProducts();
 
   const sections = useMemo(
     () =>
       CATEGORIES.filter((category) => filter === "All" || filter === category)
         .map((category) => ({
           category,
-          items: PRODUCTS.filter(
+          items: allProducts.filter(
             (product) =>
               product.category === category && product.name.toLowerCase().includes(query.toLowerCase()),
           ),
         }))
         .filter((section) => section.items.length > 0),
-    [query, filter],
+    [allProducts, query, filter],
   );
 
   return (
@@ -54,19 +55,14 @@ function MarketPlacePage() {
           src={marketHero}
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 m-auto h-[200px] w-auto select-none object-contain opacity-90 sm:h-[280px] md:h-[360px]"
-          style={{
-            filter: dark
-              ? "drop-shadow(0 20px 60px rgba(255,255,255,0.08))"
-              : "drop-shadow(0 30px 60px rgba(0,0,0,0.12))",
-          }}
+          className="pointer-events-none absolute inset-0 m-auto h-[160px] w-auto select-none object-contain opacity-90 sm:h-[224px] md:h-[288px]"
         />
         <h1
           className="relative px-2 text-center text-[36px] font-extrabold uppercase leading-none tracking-tight sm:text-[56px] md:text-[84px] lg:text-[108px]"
           style={{
             color: "transparent",
             WebkitTextStroke: dark ? "2px #ffffff" : "2.5px #111111",
-            textShadow: dark ? "0 6px 30px rgba(255,255,255,0.15)" : "0 8px 40px rgba(0,0,0,0.12)",
+            textShadow: dark ? "0 0 4px rgba(255,255,255,0.35)" : "0 0 4px rgba(0,0,0,0.25)",
           }}
         >
           Market Place
@@ -114,11 +110,6 @@ function MarketPlacePage() {
       </div>
 
       <section className="mt-12">
-        <CommunityListings
-          title="Community Listings"
-          emptyHint="Products posted from the seller dashboard will show up here."
-        />
-
         {sections.map(({ category, items }) => (
           <div key={category} className="mb-8 last:mb-0">
             <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">{category}</h3>

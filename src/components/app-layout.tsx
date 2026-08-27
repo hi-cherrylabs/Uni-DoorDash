@@ -24,7 +24,6 @@ import { useSidebar } from "@/components/sidebar-provider";
 import { MobileDock } from "@/components/mobile/mobile-dock";
 import { AccountMenu } from "@/components/account-menu";
 import { CartMenu } from "@/components/cart-menu";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 
 function ShopNowButton({ collapsed = false }: { collapsed?: boolean }) {
@@ -79,7 +78,6 @@ export function AppLayout({
   const { dark, toggle: toggleTheme } = useTheme();
   const { collapsed, toggle: toggleSidebar } = useSidebar();
   const { isAdmin } = useAuth();
-  const isMobile = useIsMobile();
 
   // The Dashboard link — and the route behind it — is completely invisible
   // to anyone signed in as someone other than the admin account. Direct
@@ -231,7 +229,7 @@ export function AppLayout({
       </div>
 
       <div className="fixed right-6 top-6 z-50 hidden gap-3 md:flex">
-        {!isMobile && <CartMenu size={44} />}
+        <CartMenu size={44} variant="filled" />
         <button
           type="button"
           title="Mail"
@@ -240,7 +238,7 @@ export function AppLayout({
         >
           <Mail className="size-5" style={{ color: "#fff" }} />
         </button>
-        {!isMobile && <AccountMenu size={44} />}
+        <AccountMenu size={44} />
       </div>
 
       <div className="fixed bottom-6 right-6 z-50 hidden gap-3 md:flex">

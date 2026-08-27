@@ -9,6 +9,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { createProduct } from "@/lib/firestore-data";
 import { CLOUDINARY_API_KEY, CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary-config";
 import { getCloudinaryUploadSignature } from "@/server/cloudinary-upload";
+import { notifyNewProduct } from "@/server/push-notify";
 
 // Downscaled client-side before upload — this is just to avoid shipping a
 // raw 12MB phone photo over the wire. Cloudinary hosts and serves the
@@ -163,6 +164,18 @@ export function CreatePieceForm() {
         image: imageUrl,
         sellerEmail: user?.email ?? null,
       });
+
+      // Best-effort — never let a push failure block the "posted
+      // successfully" flow, which has already completed at this point.
+      void (async () => {
+        try {
+          const idToken = await getFirebaseAuth().currentUser?.getIdToken();
+          if (!idToken) return;
+          await notifyNewProduct({ data: { idToken, productName: name.trim() } });
+        } catch {
+          /* silent — see comment above */
+        }
+      })();
 
       toast.success("Posted! Now live in Market Place and Home.");
       setForm(EMPTY_FORM);

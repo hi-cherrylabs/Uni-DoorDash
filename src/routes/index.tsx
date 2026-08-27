@@ -3,10 +3,10 @@ import { ArrowUpRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AppLayout } from "@/components/app-layout";
-import { CommunityListings } from "@/components/home/community-listings";
 import { GoToMarketCard } from "@/components/home/go-to-market-card";
 import { ProductCard } from "@/components/home/product-card";
-import { ADS, CATEGORIES, FILTER_CHIPS, PRODUCTS } from "@/data/catalog";
+import { ADS, CATEGORIES, FILTER_CHIPS } from "@/data/catalog";
+import { useAllVisibleProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,18 +36,19 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [activeChip, setActiveChip] = useState(FILTER_CHIPS[0]);
   const [query, setQuery] = useState("");
+  const allProducts = useAllVisibleProducts();
 
   const groups = useMemo(
     () =>
       CATEGORIES.map((category) => ({
         category,
-        items: PRODUCTS.filter(
+        items: allProducts.filter(
           (product) =>
             product.category === category &&
             product.name.toLowerCase().includes(query.toLowerCase()),
         ),
       })).filter((group) => group.items.length > 0),
-    [query],
+    [allProducts, query],
   );
 
   const marquee = [...ADS, ...ADS];
@@ -136,8 +137,6 @@ function Index() {
               <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
-
-          <CommunityListings title="What's New" limit={6} />
 
           {groups.map(({ category, items }) => (
             <div key={category} className="mb-8 last:mb-0">

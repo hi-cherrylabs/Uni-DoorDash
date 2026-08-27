@@ -14,6 +14,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/sidebar-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import { CartUIProvider } from "@/components/cart-provider";
+import { LoadingGate } from "@/components/loading-gate";
+import { PushNotificationsBridge } from "@/components/push-notifications-bridge";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -126,13 +128,16 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <CartUIProvider>
-              <SidebarProvider>
-                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                <Outlet />
-                <Toaster position="bottom-center" />
-              </SidebarProvider>
-            </CartUIProvider>
+            <LoadingGate>
+              <CartUIProvider>
+                <SidebarProvider>
+                  {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                  <Outlet />
+                  <PushNotificationsBridge />
+                  <Toaster position="bottom-center" />
+                </SidebarProvider>
+              </CartUIProvider>
+            </LoadingGate>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

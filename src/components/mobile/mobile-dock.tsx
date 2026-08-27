@@ -9,7 +9,6 @@ import { useTheme } from "@/components/theme-provider";
 import { TextRoll } from "@/components/mobile/text-roll";
 import { AccountMenu } from "@/components/account-menu";
 import { CartMenu } from "@/components/cart-menu";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_MENU_ITEMS = [
   { name: "Shop now", href: "/" },
@@ -25,7 +24,6 @@ export function MobileDock() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { dark, toggle: toggleTheme } = useTheme();
   const { isAdmin } = useAuth();
-  const isMobile = useIsMobile();
 
   // Same rule as the desktop sidebar: Dashboard only appears for the admin
   // account, and the route itself is separately guarded.
@@ -46,7 +44,7 @@ export function MobileDock() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
-            {isMobile && <CartMenu size={36} />}
+            <CartMenu size={36} variant="minimal" />
             <button
               type="button"
               title="Menu"
@@ -63,7 +61,7 @@ export function MobileDock() {
             >
               <Mail className="size-[18px]" />
             </button>
-            {isMobile && <AccountMenu size={36} />}
+            <AccountMenu size={36} />
           </div>
         </div>
       </div>

@@ -30,6 +30,16 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // ---- settings ----
+    // Small admin-controlled config docs — currently just the list of
+    // pre-installed demo-catalog product ids the admin has "deleted".
+    // Public read (every visitor needs to filter the seed catalog by this),
+    // admin-only write.
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ---- orders ----
     // A signed-in shopper can place an order for themselves, and can read
     // only their own orders. The admin can read every order (Order
@@ -42,6 +52,7 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow create: if isSignedIn()
                     && request.resource.data.buyerEmail == request.auth.token.email
+                    && request.resource.data.buyerUid == request.auth.uid
                     && request.resource.data.status == "queued";
 
       allow read: if isAdmin()
@@ -65,6 +76,18 @@ service cloud.firestore {
                     );
 
       allow delete: if false;
+    }
+
+    // ---- pushTokens ----
+    // One doc per signed-in device, keyed by uid. Only that user can write
+    // their own token (never anyone else's). No client ever needs to READ
+    // these — the admin server functions in src/server/push-notify.ts use
+    // firebase-admin, which bypasses these rules entirely (that's a trusted
+    // server context, not a browser). So reads are admin-only here purely
+    // as a safety default, not because the app relies on it.
+    match /pushTokens/{uid} {
+      allow read: if isAdmin();
+      allow write: if isSignedIn() && request.auth.uid == uid;
     }
   }
 }

@@ -1,15 +1,18 @@
 import {
   addDoc,
+  arrayUnion,
   collection,
+  deleteDoc,
+  doc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
-  updateDoc,
-  writeBatch,
-  doc,
-  where,
+  setDoc,
   Timestamp,
+  updateDoc,
+  where,
+  writeBatch,
 } from "firebase/firestore";
 
 import { getFirestoreDb } from "@/lib/firebase";
@@ -77,6 +80,44 @@ export async function createProduct(input: NewProductInput): Promise<void> {
   });
 }
 
+/** Admin only — permanently removes an admin-posted product for everyone. */
+export async function deleteProduct(productId: string): Promise<void> {
+  await deleteDoc(doc(getFirestoreDb(), PRODUCTS_COLLECTION, productId));
+}
+
+// ---------------------------------------------------------------------------
+// Hidden static products — the seed catalog in data/catalog.ts is plain
+// source code, not database rows, so "deleting" one of those demo products
+// can't be a database delete. Instead we keep a single small Firestore doc
+// listing which seed-catalog ids the admin has hidden; every page that
+// renders the static catalog filters it through this list, so a "delete" on
+// a demo product syncs to every visitor immediately, same as a real one.
+// ---------------------------------------------------------------------------
+
+const SETTINGS_COLLECTION = "settings";
+const CATALOG_SETTINGS_DOC = "catalog";
+
+export function subscribeToHiddenStaticProductIds(
+  onChange: (ids: string[]) => void,
+  onError?: (error: unknown) => void,
+) {
+  const ref = doc(getFirestoreDb(), SETTINGS_COLLECTION, CATALOG_SETTINGS_DOC);
+  return onSnapshot(
+    ref,
+    (snapshot) => {
+      const data = snapshot.data() as { hiddenProductIds?: string[] } | undefined;
+      onChange(data?.hiddenProductIds ?? []);
+    },
+    onError,
+  );
+}
+
+/** Admin only — hides a pre-installed demo product for everyone (permanent, no undo UI). */
+export async function hideStaticProduct(productId: string): Promise<void> {
+  const ref = doc(getFirestoreDb(), SETTINGS_COLLECTION, CATALOG_SETTINGS_DOC);
+  await setDoc(ref, { hiddenProductIds: arrayUnion(productId) }, { merge: true });
+}
+
 // ---------------------------------------------------------------------------
 // Orders — created by any signed-in shopper on "Buy now". Lifecycle:
 //   queued -> confirmed -> delivered   (admin approves, then marks delivered)
@@ -102,6 +143,7 @@ export type FirestoreOrder = {
   price: number;
   status: OrderStatus;
   buyerEmail: string;
+  buyerUid: string;
   buyerName: string | null;
   sellerName: string | null;
   createdAt: Timestamp | null;
@@ -157,6 +199,7 @@ export type NewOrderInput = {
   productImage: string;
   price: number;
   buyerEmail: string;
+  buyerUid: string;
   buyerName: string | null;
   sellerName: string | null;
 };
@@ -169,6 +212,7 @@ export async function placeOrder(input: NewOrderInput): Promise<void> {
     price: input.price,
     status: "queued" satisfies OrderStatus,
     buyerEmail: input.buyerEmail,
+    buyerUid: input.buyerUid,
     buyerName: input.buyerName,
     sellerName: input.sellerName,
     createdAt: serverTimestamp(),
@@ -201,6 +245,24 @@ export async function clearBuyerHistory(orderIds: string[]): Promise<void> {
     batch.update(doc(getFirestoreDb(), ORDERS_COLLECTION, id), { hiddenFromBuyerAt: serverTimestamp() });
   }
   await batch.commit();
+}
+
+// ---------------------------------------------------------------------------
+// Push notification tokens — one doc per signed-in device (keyed by uid, so
+// re-registering on a later sign-in just overwrites the same doc). Only
+// written by the client for their own uid; only read by the admin server
+// functions in src/server/push-notify.ts (via firebase-admin, which bypasses
+// these rules entirely — this file's own read/write is client-side only).
+// ---------------------------------------------------------------------------
+
+const PUSH_TOKENS_COLLECTION = "pushTokens";
+
+export async function savePushToken(uid: string, token: string, email: string | null): Promise<void> {
+  await setDoc(
+    doc(getFirestoreDb(), PUSH_TOKENS_COLLECTION, uid),
+    { token, email, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
 }
 
 // ---------------------------------------------------------------------------

@@ -2,7 +2,9 @@ import { Check, PackageCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { getFirebaseAuth } from "@/lib/firebase";
 import { subscribeToAllOrders, setOrderStatus, type FirestoreOrder } from "@/lib/firestore-data";
+import { notifyBuyer } from "@/server/push-notify";
 
 const STATUS_LABEL: Record<FirestoreOrder["status"], string> = {
   queued: "Pending confirmation",
@@ -24,10 +26,32 @@ export function OrderProgressList() {
     return unsubscribe;
   }, []);
 
-  async function updateStatus(orderId: string, status: FirestoreOrder["status"]) {
-    setBusyId(orderId);
+  async function updateStatus(order: FirestoreOrder, status: FirestoreOrder["status"]) {
+    setBusyId(order.id);
     try {
-      await setOrderStatus(orderId, status);
+      await setOrderStatus(order.id, status);
+
+      // Only "delivery accepted" (confirmed) gets a push, per the intended
+      // trigger list — best-effort, never blocks the status update itself,
+      // which has already succeeded by this point.
+      if (status === "confirmed") {
+        void (async () => {
+          try {
+            const idToken = await getFirebaseAuth().currentUser?.getIdToken();
+            if (!idToken) return;
+            await notifyBuyer({
+              data: {
+                idToken,
+                buyerUid: order.buyerUid,
+                title: "Your order was accepted",
+                body: `${order.productName} is on its way.`,
+              },
+            });
+          } catch {
+            /* silent — see comment above */
+          }
+        })();
+      }
     } catch {
       toast.error("Couldn't update that order. Please try again.");
     } finally {
@@ -71,7 +95,7 @@ export function OrderProgressList() {
                     type="button"
                     title="Confirm"
                     disabled={busy}
-                    onClick={() => void updateStatus(order.id, "confirmed")}
+                    onClick={() => void updateStatus(order, "confirmed")}
                     className="grid size-9 place-items-center rounded-full text-white transition-opacity hover:opacity-90 disabled:opacity-40"
                     style={{ backgroundColor: "var(--cherry-deep)" }}
                   >
@@ -81,7 +105,7 @@ export function OrderProgressList() {
                     type="button"
                     title="Decline"
                     disabled={busy}
-                    onClick={() => void updateStatus(order.id, "declined")}
+                    onClick={() => void updateStatus(order, "declined")}
                     className="grid size-9 place-items-center rounded-full border border-border transition-colors hover:bg-accent disabled:opacity-40"
                   >
                     <X className="size-4" />
@@ -93,7 +117,7 @@ export function OrderProgressList() {
                   type="button"
                   title="Mark delivered"
                   disabled={busy}
-                  onClick={() => void updateStatus(order.id, "delivered")}
+                  onClick={() => void updateStatus(order, "delivered")}
                   className="grid size-9 place-items-center rounded-full text-white transition-opacity hover:opacity-90 disabled:opacity-40"
                   style={{ backgroundColor: "var(--cherry-deep)" }}
                 >
