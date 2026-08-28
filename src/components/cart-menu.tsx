@@ -129,24 +129,22 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {variant === "minimal" ? (
-          <button
-            type="button"
-            title="Your orders"
-            className="grid size-9 place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
-          >
-            <Truck className="size-[18px]" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            title="Your orders"
-            className="grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--cherry-deep)", width: size, height: size }}
-          >
-            <Truck className="size-1/2" />
-          </button>
-        )}
+        <button
+          type="button"
+          title="Your orders"
+          className={
+            variant === "minimal"
+              ? "grid place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
+              : "grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
+          }
+          style={
+            variant === "minimal"
+              ? { width: size, height: size }
+              : { backgroundColor: "var(--cherry-deep)", width: size, height: size }
+          }
+        >
+          <Truck className={variant === "minimal" ? "size-[60%]" : "size-1/2"} />
+        </button>
       </PopoverTrigger>
 
       <PopoverContent
