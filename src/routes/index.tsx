@@ -55,7 +55,7 @@ function Index() {
 
   return (
     <AppLayout variant="gradient">
-      <header className="text-center">
+      <header className="mt-10 text-center md:mt-0">
         <h1 className="text-5xl font-black uppercase leading-none tracking-tight text-white md:text-7xl">
           UNI DOOR DASH
         </h1>

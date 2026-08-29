@@ -90,7 +90,7 @@ function SubscriptionPage() {
 
   return (
     <AppLayout>
-      <h1 className="text-shimmer-navy-pink text-center text-5xl font-black uppercase tracking-tight md:text-7xl">
+      <h1 className="text-shimmer-navy-pink mt-10 text-center text-5xl font-black uppercase tracking-tight md:mt-0 md:text-7xl">
         Subscription
       </h1>
       <div className="mt-8 flex justify-center">

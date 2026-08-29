@@ -59,7 +59,7 @@ function Page() {
 
   return (
     <AppLayout>
-      <div className="flex items-center gap-3">
+      <div className="mt-10 flex items-center gap-3 md:mt-0">
         <StorageButton />
         <NotificationsButton />
       </div>
