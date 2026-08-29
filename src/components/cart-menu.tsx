@@ -6,6 +6,7 @@ import type { Timestamp } from "firebase/firestore";
 
 import { useAuth } from "@/components/auth-provider";
 import { useCartUI } from "@/components/cart-provider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   cancelOrderAsBuyer,
@@ -69,6 +70,32 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
   }, [open]);
 
   if (!user) return null;
+
+  const isMobile = useIsMobile();
+  const active = variant === "minimal" ? isMobile : !isMobile;
+
+  const buttonEl = (
+    <button
+      type="button"
+      title="Your orders"
+      className={
+        variant === "minimal"
+          ? "grid place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
+          : "grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
+      }
+      style={
+        variant === "minimal"
+          ? { width: size, height: size }
+          : { backgroundColor: "var(--cherry-deep)", width: size, height: size }
+      }
+    >
+      <Truck className={variant === "minimal" ? "size-[60%]" : "size-1/2"} />
+    </button>
+  );
+
+  if (!active) {
+    return buttonEl;
+  }
 
   const real = orders ?? [];
   // Once the real order (matching productId, placed in roughly the same
