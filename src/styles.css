@@ -124,8 +124,8 @@ body {
   --sidebar-width: 230px;
   --panel-gap: 11px;
   --panel-radius: 20px;
-  --app-sidebar-flat: #121212;
-  --app-main-flat: #1e1e1e;
+  --app-sidebar-flat: #1e1e1e;
+  --app-main-flat: #121212;
 }
 .light {
   --background: oklch(98% 0.004 60);
@@ -279,6 +279,42 @@ body {
   border-radius: 9999px;
   position: absolute;
   inset: 2px;
+}
+
+/* Market Place search bar's glow — same spinning-conic-gradient technique
+   and motion as .rainbow-beam above, just a smaller/flatter shape (not a
+   full pill) and a restrained pink/navy/white palette instead of the full
+   rainbow. */
+.rainbow-beam-search {
+  isolation: isolate;
+  border-radius: 14px;
+  padding: 1.5px;
+  position: relative;
+  overflow: hidden;
+}
+.rainbow-beam-search:before {
+  content: "";
+  z-index: -1;
+  filter: blur(6px);
+  background: conic-gradient(
+    var(--cherry-pink),
+    #ffffff,
+    var(--cherry-deep),
+    var(--cherry-deep),
+    #ffffff,
+    var(--cherry-pink)
+  );
+  animation: 5s linear infinite rainbow-spin;
+  position: absolute;
+  inset: -150%;
+}
+.rainbow-beam-search:after {
+  content: "";
+  background: var(--search-bg, #151515);
+  z-index: -1;
+  border-radius: inherit;
+  position: absolute;
+  inset: 1.5px;
 }
 ::view-transition-old(root) {
   mix-blend-mode: normal;
@@ -727,13 +763,14 @@ body {
 
 /* ---------- Mobile adaptation (below 768px) ---------- */
 .mobile-dock {
-  background: color-mix(in oklab, var(--app-sidebar-flat) 82%, #000 18%);
+  background: var(--app-sidebar-flat);
+  border-radius: 22px;
   border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
   backdrop-filter: blur(18px) saturate(140%);
   box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
 }
 .mobile-sheet {
-  background: color-mix(in oklab, var(--app-sidebar-flat) 68%, #000 32%);
+  background: var(--app-sidebar-flat);
   border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
   backdrop-filter: blur(26px) saturate(150%);
   box-shadow: 0 24px 60px rgb(0 0 0 / 45%);
@@ -743,24 +780,11 @@ body {
   .mobile-main {
     margin: 0 !important;
     border-radius: 0 !important;
-    padding-top: 64px;
   }
   .mobile-page {
     font-size: 0.88rem;
     padding-left: 12px !important;
     padding-right: 12px !important;
-  }
-  /* Dark mode only, mobile only — desktop keeps #1e1e1e untouched. #1e1e1e
-     was tuned for desktop monitors; on phone OLED/AMOLED panels it reads as
-     a lit, slightly warm gray rather than "off", especially next to the
-     mobile dock's darker chrome. #141414 is a deliberate middle ground: a
-     real visible drop from #1e1e1e, but still clearly lighter than the
-     dock's near-black chrome (keeps the floating-panel depth effect intact)
-     and still gives the liquid-glass surfaces (profile popover especially,
-     which has no scrim behind it) enough tonal variation to blur/saturate
-     into something rich rather than flat smoked glass. */
-  :root:not(.light) {
-    --app-main-flat: #141414;
   }
   /* Hides the visible scrollbar track/thumb on the main content scroll
      area — scrolling still works exactly the same, just without the
@@ -853,7 +877,7 @@ body {
    the full viewport, so it never renders partly hidden under that bar. */
 @media (max-width: 767px) {
   .glass-card {
-    top: calc(50% + 32px);
+    top: calc(50% + 29px);
   }
 }
 

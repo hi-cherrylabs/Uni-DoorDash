@@ -204,7 +204,7 @@ export function LoadingGate({ children }: { children: ReactNode }) {
         <div
           aria-hidden={ready}
           className="fixed inset-0 z-[300] grid place-items-center transition-opacity duration-500"
-          style={{ backgroundColor: "#141414", opacity: ready ? 0 : 1 }}
+          style={{ backgroundColor: "#121212", opacity: ready ? 0 : 1 }}
         >
           <CherryLoader />
         </div>

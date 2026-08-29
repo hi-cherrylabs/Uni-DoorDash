@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Heart, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { type CSSProperties, useMemo, useState } from "react";
 
 import { AppLayout } from "@/components/app-layout";
@@ -69,17 +69,23 @@ function MarketPlacePage() {
         </h1>
       </div>
 
-      <div className="mx-auto mt-8 max-w-3xl" style={{ "--search-bg": "var(--app-main-flat)" } as CSSProperties}>
-        <div className="rainbow-beam">
-          <div className="flex h-16 items-center gap-4 rounded-full px-6" style={{ backgroundColor: "var(--app-main-flat)" }}>
-            <Search className="size-5 shrink-0 text-muted-foreground" />
+      <div
+        className="mx-auto mt-8 max-w-xl px-4"
+        style={{ "--search-bg": "var(--app-main-flat)" } as CSSProperties}
+      >
+        <div className="rainbow-beam-search">
+          <div
+            className="flex h-11 items-center gap-3 px-5"
+            style={{ backgroundColor: "var(--app-main-flat)", borderRadius: "inherit" }}
+          >
+            <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search the market place…"
-              className="min-w-0 flex-1 bg-transparent text-lg outline-none placeholder:text-muted-foreground"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
-            <span className="hidden shrink-0 text-xs uppercase tracking-widest text-muted-foreground sm:block">
+            <span className="hidden shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground sm:block">
               ⌘K
             </span>
           </div>
@@ -90,26 +96,7 @@ function MarketPlacePage() {
         <SegmentedControl options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
       </div>
 
-      <div className="mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-4">
-        <button
-          type="button"
-          className="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl shadow-lg"
-          style={{ background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)" }}
-        >
-          <Heart className="size-7 text-white" />
-          <span className="text-sm font-bold text-white">Favourites</span>
-        </button>
-        <button
-          type="button"
-          className="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-border"
-          style={{ backgroundColor: "var(--app-main-flat)" }}
-        >
-          <Clock className="size-7 text-muted-foreground" />
-          <span className="text-sm font-bold">Recent purchased</span>
-        </button>
-      </div>
-
-      <section className="mt-12">
+      <section className="mt-8">
         {sections.map(({ category, items }) => (
           <div key={category} className="mb-8 last:mb-0">
             <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">{category}</h3>
