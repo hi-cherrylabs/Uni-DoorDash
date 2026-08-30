@@ -9,7 +9,9 @@ import { ADMIN_EMAIL } from "@/lib/firebase";
 // a service-account secret just to verify who's calling.
 const FIREBASE_PROJECT_ID = "uni-doordash";
 const GOOGLE_JWKS = createRemoteJWKSet(
-  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"),
+  new URL(
+    "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
+  ),
 );
 
 export type VerifiedCaller = { uid: string; email: string | undefined };
@@ -25,14 +27,18 @@ export async function verifyIdToken(idToken: string): Promise<VerifiedCaller> {
     throw new Error("Not authenticated.");
   }
   const uid = typeof payload.sub === "string" ? payload.sub : "";
-  const email = typeof payload["email"] === "string" ? payload["email"] : undefined;
+  const email =
+    typeof payload["email"] === "string" ? payload["email"] : undefined;
   if (!uid) throw new Error("Not authenticated.");
   return { uid, email };
 }
 
 export async function verifyAdmin(idToken: string): Promise<VerifiedCaller> {
   const caller = await verifyIdToken(idToken);
-  if (!caller.email || caller.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+  if (
+    !caller.email ||
+    caller.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()
+  ) {
     throw new Error("Only the admin account can do this.");
   }
   return caller;

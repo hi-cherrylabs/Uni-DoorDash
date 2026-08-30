@@ -8,17 +8,29 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
 } from "firebase/auth";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 
 import { ADMIN_EMAIL, getFirebaseAuth } from "@/lib/firebase";
-import { SignInDialog } from "@/components/sign-in-dialog";
+import {
+  ensureUserProfileShell,
+  subscribeToUserProfile,
+  type UserProfile,
+} from "@/lib/firestore-data";
 
-// Set once the sign-in card has auto-opened for this browser (or once we've
-// confirmed it doesn't need to, because someone's already signed in). After
-// that, the card never opens itself again — only a deliberate click on the
-// account button (see app-layout.tsx / mobile-dock.tsx) opens it.
-const FIRST_VISIT_KEY = "udd-first-visit-shown";
+// Set permanently (never cleared, including on logout) the first time this
+// browser ever completes a real sign-in. This is what tells AppGate which
+// signed-out surface to show: a browser that's never signed in here before
+// sees the full onboarding welcome/theme/auth experience; a browser that has
+// (i.e. someone who just logged out) sees the plain sign-in card instead.
+const EVER_SIGNED_IN_KEY = "udd-ever-signed-in";
 
 export type UddUser = {
   uid: string;
@@ -35,8 +47,12 @@ type AuthContextValue = {
   /** True when `user` is signed in with the admin account. */
   isAdmin: boolean;
   error: string | null;
-  openSignIn: () => void;
-  closeSignIn: () => void;
+  /** This account's onboarding profile, or null if it doesn't exist yet. */
+  profile: UserProfile | null;
+  /** True once the profile subscription has reported at least once for the current user (or trivially true when signed out). */
+  profileReady: boolean;
+  /** True if this browser has ever completed a sign-in before (persists across logout). */
+  hasSignedInBefore: boolean;
   signInGoogle: () => Promise<void>;
   signInApple: () => Promise<void>;
   signInEmail: (email: string, password: string) => Promise<void>;
@@ -55,7 +71,11 @@ export function useAuth(): AuthContextValue {
 function mapUser(fbUser: FirebaseUser): UddUser {
   const providerId = fbUser.providerData[0]?.providerId ?? "password";
   const provider: UddUser["provider"] =
-    providerId === "google.com" ? "Google" : providerId === "apple.com" ? "Apple" : "Email";
+    providerId === "google.com"
+      ? "Google"
+      : providerId === "apple.com"
+        ? "Apple"
+        : "Email";
   return {
     uid: fbUser.uid,
     email: fbUser.email,
@@ -88,61 +108,81 @@ function describeAuthError(err: unknown): string {
   }
 }
 
+function markEverSignedIn() {
+  try {
+    localStorage.setItem(EVER_SIGNED_IN_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+function readEverSignedIn(): boolean {
+  try {
+    return localStorage.getItem(EVER_SIGNED_IN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UddUser | null>(null);
   const [ready, setReady] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileReady, setProfileReady] = useState(false);
+  const [hasSignedInBefore, setHasSignedInBefore] = useState(false);
 
   useEffect(() => {
+    setHasSignedInBefore(readEverSignedIn());
     const unsubscribe = onAuthStateChanged(getFirebaseAuth(), (fbUser) => {
       setUser(fbUser ? mapUser(fbUser) : null);
       setReady(true);
+      if (fbUser) markEverSignedIn();
     });
     return unsubscribe;
   }, []);
 
-  // Auto-open the sign-in card exactly once: the very first time this
-  // browser ever loads the site while signed out. Firebase Auth persists
-  // the session locally by default, so on every later visit `user` is
-  // already populated by the time `ready` flips true and this is a no-op.
-  // Nothing else in the app is allowed to call openSignIn() as a side
-  // effect of some other button (cart/buy/create-a-piece etc. just show a
-  // toast instead) — this effect is the only automatic trigger left.
+  // Profile subscription: follows the signed-in uid, resets whenever it
+  // changes (including to null on sign-out) so a stale previous account's
+  // profile is never briefly visible for the next one.
   useEffect(() => {
-    if (!ready) return;
-    let alreadyShown = true;
-    try {
-      alreadyShown = localStorage.getItem(FIRST_VISIT_KEY) === "1";
-    } catch {
-      /* if storage is unavailable, fail closed: don't nag every load */
+    if (!user) {
+      setProfile(null);
+      setProfileReady(true);
+      return;
     }
-    if (!alreadyShown && !user) {
-      setDialogOpen(true);
-    }
-    try {
-      localStorage.setItem(FIRST_VISIT_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    // Deliberately only depends on `ready` — this must run once per app
-    // load, not every time `user` changes (e.g. on sign-out).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+    setProfileReady(false);
+    let cancelled = false;
+    const unsubscribe = subscribeToUserProfile(
+      user.uid,
+      (nextProfile) => {
+        if (cancelled) return;
+        setProfile(nextProfile);
+        setProfileReady(true);
+        // First time this account is ever seen with no profile doc at all —
+        // create the shell immediately so onboarding has something to
+        // merge into and so `lastStep` exists from the very first step.
+        if (!nextProfile) {
+          void ensureUserProfileShell(user.uid, user.email);
+        }
+      },
+      () => {
+        if (cancelled) return;
+        setProfileReady(true);
+      },
+    );
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [user]);
 
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-
-  const openSignIn = useCallback(() => {
-    setError(null);
-    setDialogOpen(true);
-  }, []);
-  const closeSignIn = useCallback(() => setDialogOpen(false), []);
 
   const signInGoogle = useCallback(async () => {
     setError(null);
     try {
       await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
-      setDialogOpen(false);
     } catch (err) {
       const message = describeAuthError(err);
       if (message) setError(message);
@@ -153,7 +193,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       await signInWithPopup(getFirebaseAuth(), new OAuthProvider("apple.com"));
-      setDialogOpen(false);
     } catch (err) {
       const message = describeAuthError(err);
       if (message) setError(message);
@@ -164,7 +203,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
-      setDialogOpen(false);
     } catch (err) {
       setError(describeAuthError(err));
     }
@@ -174,7 +212,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
-      setDialogOpen(false);
     } catch (err) {
       setError(describeAuthError(err));
     }
@@ -182,36 +219,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOutUser = useCallback(async () => {
     await firebaseSignOut(getFirebaseAuth());
-    // Deliberate exception to the "only auto-opens once, ever" rule: a
-    // logout is an explicit user action, and re-prompting for sign-in
-    // right after is expected here — unlike buy/cart/create-a-piece,
-    // which never trigger the card automatically.
     setError(null);
-    setDialogOpen(true);
+    // Deliberately NOT clearing EVER_SIGNED_IN_KEY: a logout is what makes
+    // AppGate show the plain sign-in card instead of the full onboarding
+    // welcome experience on this browser from now on.
   }, []);
 
   // Legacy bridge, kept only in case any other script still reads
-  // window.UDDAuth. public/udd/market.js (the only thing that used to call
-  // this) has been retired — its product/cart/order/admin-gate logic is now
-  // real React + Firestore. requireAuth() deliberately does NOT open the
-  // sign-in card anymore: the card only ever auto-opens once, on a
-  // brand-new browser's first visit (see the effect above). Callers should
-  // check isSignedIn() and show their own toast instead of relying on this
-  // to pop the dialog.
+  // window.UDDAuth. requireAuth()/isSignedIn() reflect real auth state;
+  // show()/hide() are now no-ops since the sign-in surface is fully owned
+  // by AppGate, not a dismissible dialog toggled from elsewhere.
   useEffect(() => {
     window.UDDAuth = {
-      requireAuth() {
-        return ready && !!user;
-      },
+      requireAuth: () => ready && !!user,
       isSignedIn: () => ready && !!user,
       getCurrentUser: () => user,
-      show: openSignIn,
-      hide: closeSignIn,
+      show: () => {},
+      hide: () => {},
       signOut: () => {
         void signOutUser();
       },
     };
-  }, [user, ready, openSignIn, closeSignIn, signOutUser]);
+  }, [user, ready, signOutUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -219,8 +248,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ready,
       isAdmin,
       error,
-      openSignIn,
-      closeSignIn,
+      profile,
+      profileReady,
+      hasSignedInBefore,
       signInGoogle,
       signInApple,
       signInEmail,
@@ -232,8 +262,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ready,
       isAdmin,
       error,
-      openSignIn,
-      closeSignIn,
+      profile,
+      profileReady,
+      hasSignedInBefore,
       signInGoogle,
       signInApple,
       signInEmail,
@@ -242,15 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-      <SignInDialog
-        open={dialogOpen}
-        onOpenChange={(open) => (open ? openSignIn() : closeSignIn())}
-      />
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 declare global {

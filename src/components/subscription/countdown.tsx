@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { SlotText } from "@/components/subscription/slot-text";
 
 function useCountdown(target: number) {
-  const [remaining, setRemaining] = useState(() => Math.max(0, target - Date.now()));
+  const [remaining, setRemaining] = useState(() =>
+    Math.max(0, target - Date.now()),
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -48,13 +50,21 @@ export function SubscriptionCountdown({ target }: { target: number }) {
       </span>
       <div className="mt-4 flex items-start gap-3 sm:gap-5">
         <CountdownUnit value={months} label="Months" />
-        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">:</span>
+        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">
+          :
+        </span>
         <CountdownUnit value={days} label="Days" />
-        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">:</span>
+        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">
+          :
+        </span>
         <CountdownUnit value={hours} label="Hours" />
-        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">:</span>
+        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">
+          :
+        </span>
         <CountdownUnit value={minutes} label="Minutes" />
-        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">:</span>
+        <span className="mt-1 text-3xl font-black text-muted-foreground sm:text-4xl">
+          :
+        </span>
         <CountdownUnit value={seconds} label="Seconds" />
       </div>
     </div>

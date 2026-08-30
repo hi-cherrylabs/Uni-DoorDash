@@ -22,7 +22,13 @@ function SlotDigit({ char }: { char: string }) {
   );
 }
 
-export function SlotText({ text, className = "" }: { text: string; className?: string }) {
+export function SlotText({
+  text,
+  className = "",
+}: {
+  text: string;
+  className?: string;
+}) {
   return (
     <span className={`slot-text-row ${className}`}>
       {text.split("").map((char, i) => (

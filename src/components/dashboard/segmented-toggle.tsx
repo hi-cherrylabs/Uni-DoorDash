@@ -14,7 +14,10 @@ export function SegmentedToggle({
   const { dark } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
+  const [indicator, setIndicator] = useState<{
+    left: number;
+    width: number;
+  } | null>(null);
 
   useEffect(() => {
     const update = () => {
@@ -74,7 +77,9 @@ export function SegmentedToggle({
           type="button"
           onClick={() => onChange(option)}
           className={`relative z-10 shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-            value === option ? "text-cherry-deep" : "text-foreground/80 hover:text-foreground"
+            value === option
+              ? "text-cherry-deep"
+              : "text-foreground/80 hover:text-foreground"
           }`}
         >
           {option}

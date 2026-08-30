@@ -7,7 +7,10 @@ import { CATEGORIES } from "@/data/catalog";
 import { useAuth } from "@/components/auth-provider";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { createProduct } from "@/lib/firestore-data";
-import { CLOUDINARY_API_KEY, CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary-config";
+import {
+  CLOUDINARY_API_KEY,
+  CLOUDINARY_CLOUD_NAME,
+} from "@/lib/cloudinary-config";
 import { getCloudinaryUploadSignature } from "@/server/cloudinary-upload";
 import { notifyNewProduct } from "@/server/push-notify";
 
@@ -39,7 +42,8 @@ function compressImageToBlob(file: File): Promise<Blob> {
         }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob(
-          (blob) => (blob ? resolve(blob) : reject(new Error("Could not encode image"))),
+          (blob) =>
+            blob ? resolve(blob) : reject(new Error("Could not encode image")),
           "image/jpeg",
           0.85,
         );
@@ -53,7 +57,10 @@ function compressImageToBlob(file: File): Promise<Blob> {
 }
 
 /** Uploads directly to Cloudinary using a server-issued signature. Returns the hosted image URL. */
-async function uploadToCloudinary(blob: Blob, category: string): Promise<string> {
+async function uploadToCloudinary(
+  blob: Blob,
+  category: string,
+): Promise<string> {
   const idToken = await getFirebaseAuth().currentUser?.getIdToken();
   if (!idToken) throw new Error("Not signed in.");
 
@@ -68,10 +75,13 @@ async function uploadToCloudinary(blob: Blob, category: string): Promise<string>
   body.append("folder", folder);
   body.append("signature", signature);
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-    method: "POST",
-    body,
-  });
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+    {
+      method: "POST",
+      body,
+    },
+  );
   if (!res.ok) throw new Error("Cloudinary upload failed");
   const json = (await res.json()) as { secure_url?: string };
   if (!json.secure_url) throw new Error("Cloudinary upload failed");
@@ -171,7 +181,9 @@ export function CreatePieceForm() {
         try {
           const idToken = await getFirebaseAuth().currentUser?.getIdToken();
           if (!idToken) return;
-          await notifyNewProduct({ data: { idToken, productName: name.trim() } });
+          await notifyNewProduct({
+            data: { idToken, productName: name.trim() },
+          });
         } catch {
           /* silent — see comment above */
         }
@@ -196,7 +208,9 @@ export function CreatePieceForm() {
   if (!isAdmin) {
     return (
       <div className="mx-auto mt-8 max-w-2xl rounded-3xl border border-border p-8 text-center">
-        <p className="text-sm font-semibold">Only the admin account can post products.</p>
+        <p className="text-sm font-semibold">
+          Only the admin account can post products.
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">
           Sign in with the Uni Door Dash admin account to use this form.
         </p>
@@ -338,7 +352,8 @@ export function CreatePieceForm() {
           disabled={submitting}
           className="mt-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition-opacity hover:opacity-90 disabled:opacity-50"
           style={{
-            background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+            background:
+              "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
           }}
         >
           {submitting ? (statusLabel ?? "Posting…") : "Post product"}

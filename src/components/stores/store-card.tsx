@@ -26,7 +26,9 @@ export function StoreCard({ store }: { store: Store }) {
             />
             <div className="min-w-0">
               <h3 className="truncate text-sm font-bold">{store.name}</h3>
-              <p className="truncate text-xs text-muted-foreground">{store.specialty}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {store.specialty}
+              </p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -46,7 +48,9 @@ export function StoreCard({ store }: { store: Store }) {
             </button>
           </div>
         </div>
-        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{store.description}</p>
+        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+          {store.description}
+        </p>
       </div>
     </article>
   );

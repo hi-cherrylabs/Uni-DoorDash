@@ -11,8 +11,18 @@ export function StorageButton() {
       style={{ backgroundColor: "var(--app-main-flat)" }}
     >
       <span className="relative grid size-11 shrink-0 place-items-center">
-        <svg viewBox="0 0 64 64" className="absolute inset-0 size-full -rotate-90">
-          <circle cx="32" cy="32" r={26} fill="none" stroke="var(--border)" strokeWidth="4" />
+        <svg
+          viewBox="0 0 64 64"
+          className="absolute inset-0 size-full -rotate-90"
+        >
+          <circle
+            cx="32"
+            cy="32"
+            r={26}
+            fill="none"
+            stroke="var(--border)"
+            strokeWidth="4"
+          />
           <circle
             cx="32"
             cy="32"
@@ -25,7 +35,13 @@ export function StorageButton() {
             strokeDashoffset={offset}
           />
           <defs>
-            <linearGradient id="dash-storage-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient
+              id="dash-storage-gradient"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
               <stop offset="0%" stopColor="var(--cherry-pink)" />
               <stop offset="100%" stopColor="#2f6bff" />
             </linearGradient>

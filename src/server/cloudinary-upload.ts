@@ -4,12 +4,17 @@ import { createHash } from "node:crypto";
 import { categoryToFolder } from "@/lib/cloudinary-config";
 import { verifyAdmin } from "@/server/verify-auth";
 
-function signParams(params: Record<string, string | number>, apiSecret: string): string {
+function signParams(
+  params: Record<string, string | number>,
+  apiSecret: string,
+): string {
   const toSign = Object.keys(params)
     .sort()
     .map((key) => `${key}=${params[key]}`)
     .join("&");
-  return createHash("sha1").update(toSign + apiSecret).digest("hex");
+  return createHash("sha1")
+    .update(toSign + apiSecret)
+    .digest("hex");
 }
 
 /**
@@ -25,7 +30,9 @@ export const getCloudinaryUploadSignature = createServerFn({ method: "POST" })
 
     const apiSecret = process.env["CLOUDINARY_API_SECRET"];
     if (!apiSecret) {
-      throw new Error("Image upload isn't configured on the server yet (missing CLOUDINARY_API_SECRET).");
+      throw new Error(
+        "Image upload isn't configured on the server yet (missing CLOUDINARY_API_SECRET).",
+      );
     }
 
     const timestamp = Math.floor(Date.now() / 1000);

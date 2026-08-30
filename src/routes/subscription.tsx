@@ -5,8 +5,14 @@ import { Store, Truck } from "lucide-react";
 import { AppLayout } from "@/components/app-layout";
 import { SegmentedControl } from "@/components/segmented-control";
 import { SubscriptionCountdown } from "@/components/subscription/countdown";
-import { OpportunityCard, type OpportunityPlan } from "@/components/subscription/opportunity-card";
-import { PricingCard, type SubscriptionPlan } from "@/components/subscription/pricing-card";
+import {
+  OpportunityCard,
+  type OpportunityPlan,
+} from "@/components/subscription/opportunity-card";
+import {
+  PricingCard,
+  type SubscriptionPlan,
+} from "@/components/subscription/pricing-card";
 import { SlotText } from "@/components/subscription/slot-text";
 import { StorageRing } from "@/components/subscription/storage-ring";
 import { UpdatesCarousel } from "@/components/subscription/updates-carousel";
@@ -19,12 +25,14 @@ export const Route = createFileRoute("/subscription")({
       { title: "Subscription — Uni Door Dash" },
       {
         name: "description",
-        content: "Manage your Uni Door Dash subscription, wallet, and requests.",
+        content:
+          "Manage your Uni Door Dash subscription, wallet, and requests.",
       },
       { property: "og:title", content: "Subscription — Uni Door Dash" },
       {
         property: "og:description",
-        content: "Manage your Uni Door Dash subscription, wallet, and requests.",
+        content:
+          "Manage your Uni Door Dash subscription, wallet, and requests.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -33,7 +41,12 @@ export const Route = createFileRoute("/subscription")({
   component: SubscriptionPage,
 });
 
-const TABS: string[] = ["Recent Updates", "My Wallet", "Subscription", "Pricing"];
+const TABS: string[] = [
+  "Recent Updates",
+  "My Wallet",
+  "Subscription",
+  "Pricing",
+];
 
 const PLANS: SubscriptionPlan[] = [
   {
@@ -67,13 +80,15 @@ const OPPORTUNITIES: OpportunityPlan[] = [
     title: "Open a Shop",
     price: 50000,
     icon: Store,
-    description: "List your own products on Uni Door Dash and reach every shopper on the app.",
+    description:
+      "List your own products on Uni Door Dash and reach every shopper on the app.",
   },
   {
     title: "Cover Monthly Free Delivery",
     price: 50000,
     icon: Truck,
-    description: "Offer your customers free delivery all month, funded through this plan.",
+    description:
+      "Offer your customers free delivery all month, funded through this plan.",
   },
 ];
 
@@ -107,7 +122,11 @@ function SubscriptionPage() {
                 className="flex items-start gap-4 rounded-2xl p-4"
                 style={{ backgroundColor: "var(--app-main-flat)" }}
               >
-                <img src={item.avatar} alt="" className="size-11 shrink-0 rounded-full object-cover" />
+                <img
+                  src={item.avatar}
+                  alt=""
+                  className="size-11 shrink-0 rounded-full object-cover"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-cherry-deep px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
@@ -115,7 +134,9 @@ function SubscriptionPage() {
                     </span>
                     <h3 className="truncate font-bold">{item.title}</h3>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
                 </div>
                 <div className="shrink-0 text-right text-xs text-muted-foreground">
                   <p>{new Date(item.date).toLocaleDateString()}</p>
@@ -130,16 +151,22 @@ function SubscriptionPage() {
       {tab === "My Wallet" && (
         <div className="mx-auto mt-12 max-w-2xl">
           <div className="text-center">
-            <h2 className="text-2xl font-extrabold uppercase tracking-wide">Set up your wallet</h2>
+            <h2 className="text-2xl font-extrabold uppercase tracking-wide">
+              Set up your wallet
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">Hi! Hi-cherry</p>
           </div>
           <div className="mt-8">
             <WalletCardForm />
           </div>
-          <div className="mt-6 rounded-2xl p-5 shadow-lg" style={{ backgroundColor: "var(--app-main-flat)" }}>
+          <div
+            className="mt-6 rounded-2xl p-5 shadow-lg"
+            style={{ backgroundColor: "var(--app-main-flat)" }}
+          >
             <h3 className="font-bold">Phone number</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              This phone number will be used to be paid or pay accordingly. You can change it anytime.
+              This phone number will be used to be paid or pay accordingly. You
+              can change it anytime.
             </p>
             <div className="mt-3 flex gap-2">
               <input
@@ -156,7 +183,10 @@ function SubscriptionPage() {
               </button>
             </div>
           </div>
-          <div className="mt-6 rounded-2xl p-6 text-white shadow-lg" style={{ backgroundColor: "#0a0a0a" }}>
+          <div
+            className="mt-6 rounded-2xl p-6 text-white shadow-lg"
+            style={{ backgroundColor: "#0a0a0a" }}
+          >
             <div className="flex items-center justify-between">
               <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-wide text-black">
                 Spendings
@@ -178,12 +208,17 @@ function SubscriptionPage() {
             </div>
           </div>
           <div className="mt-8 text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-cherry-pink">Upgrade</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-cherry-pink">
+              Upgrade
+            </p>
             <button
               type="button"
               onClick={() => setTab("Pricing")}
               className="mt-2 w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-lg hover:opacity-90 sm:text-base"
-              style={{ background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)" }}
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+              }}
             >
               Upgrade your subscription to access more customers
             </button>
@@ -212,10 +247,17 @@ function SubscriptionPage() {
             <SubscriptionCountdown target={planEnds} />
             <div
               className="mx-auto mt-12 w-full max-w-md rounded-2xl p-5 text-center shadow-lg"
-              style={{ background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)" }}
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+              }}
             >
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Your plan</p>
-              <h3 className="mt-1 text-2xl font-black text-white">{activePlan}</h3>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
+                Your plan
+              </p>
+              <h3 className="mt-1 text-2xl font-black text-white">
+                {activePlan}
+              </h3>
             </div>
             <div className="mt-8">
               <StorageRing usedMb={200} totalMb={1024} />
@@ -226,14 +268,21 @@ function SubscriptionPage() {
       {tab === "Pricing" && (
         <div className="mt-14">
           <div className="text-center">
-            <SlotText text="75,000 Tsh" className="text-6xl font-black tracking-tight sm:text-7xl md:text-8xl" />
+            <SlotText
+              text="75,000 Tsh"
+              className="text-6xl font-black tracking-tight sm:text-7xl md:text-8xl"
+            />
             <p className="mt-3 text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
               Full features / month
             </p>
           </div>
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
             {PLANS.map((plan) => (
-              <PricingCard key={plan.title} {...plan} onSubscribe={() => subscribe(plan.title)} />
+              <PricingCard
+                key={plan.title}
+                {...plan}
+                onSubscribe={() => subscribe(plan.title)}
+              />
             ))}
           </div>
           <h2 className="mt-16 text-center text-2xl font-extrabold uppercase tracking-wide">

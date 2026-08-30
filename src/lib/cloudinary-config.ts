@@ -15,7 +15,9 @@ export const CLOUDINARY_API_KEY = "982871317289965";
  * rather than letting arbitrary input shape a folder path.
  */
 export function categoryToFolder(category: string): string {
-  const match = CATEGORIES.find((c) => c.toLowerCase() === category.toLowerCase());
+  const match = CATEGORIES.find(
+    (c) => c.toLowerCase() === category.toLowerCase(),
+  );
   const safe = (match ?? "Misc")
     .replace(/[^a-zA-Z0-9 _-]/g, "")
     .trim()

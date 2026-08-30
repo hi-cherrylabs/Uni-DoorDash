@@ -16,7 +16,8 @@ export const Route = createFileRoute("/market-place")({
       { title: "Market Place — Uni Door Dash" },
       {
         name: "description",
-        content: "Browse the full Uni Door Dash Market Place — every seller, every category, in one place.",
+        content:
+          "Browse the full Uni Door Dash Market Place — every seller, every category, in one place.",
       },
       { property: "og:title", content: "Market Place — Uni Door Dash" },
       { property: "og:type", content: "website" },
@@ -41,7 +42,8 @@ function MarketPlacePage() {
           category,
           items: allProducts.filter(
             (product) =>
-              product.category === category && product.name.toLowerCase().includes(query.toLowerCase()),
+              product.category === category &&
+              product.name.toLowerCase().includes(query.toLowerCase()),
           ),
         }))
         .filter((section) => section.items.length > 0),
@@ -62,7 +64,9 @@ function MarketPlacePage() {
           style={{
             color: "transparent",
             WebkitTextStroke: dark ? "2px #ffffff" : "2.5px #111111",
-            textShadow: dark ? "0 0 4px rgba(255,255,255,0.35)" : "0 0 4px rgba(0,0,0,0.25)",
+            textShadow: dark
+              ? "0 0 4px rgba(255,255,255,0.35)"
+              : "0 0 4px rgba(0,0,0,0.25)",
           }}
         >
           Market Place
@@ -76,7 +80,10 @@ function MarketPlacePage() {
         <div className="rainbow-beam-search">
           <div
             className="flex h-11 items-center gap-3 px-5"
-            style={{ backgroundColor: "var(--app-main-flat)", borderRadius: "inherit" }}
+            style={{
+              backgroundColor: "var(--app-main-flat)",
+              borderRadius: "inherit",
+            }}
           >
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
@@ -93,13 +100,19 @@ function MarketPlacePage() {
       </div>
 
       <div className="mt-6 flex justify-center">
-        <SegmentedControl options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
+        <SegmentedControl
+          options={FILTER_OPTIONS}
+          value={filter}
+          onChange={setFilter}
+        />
       </div>
 
       <section className="mt-8">
         {sections.map(({ category, items }) => (
           <div key={category} className="mb-8 last:mb-0">
-            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">{category}</h3>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {category}
+            </h3>
             <div className="no-scrollbar flex gap-4 overflow-x-auto pb-2">
               {items.map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -108,7 +121,9 @@ function MarketPlacePage() {
           </div>
         ))}
         {sections.length === 0 && (
-          <p className="py-16 text-center text-muted-foreground">Nothing here yet — try another search or filter.</p>
+          <p className="py-16 text-center text-muted-foreground">
+            Nothing here yet — try another search or filter.
+          </p>
         )}
       </section>
     </AppLayout>

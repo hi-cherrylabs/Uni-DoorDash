@@ -18,7 +18,13 @@ export function digitsOnly(value: string, maxLength: number) {
   return value.replace(/\D/g, "").slice(0, maxLength);
 }
 
-export function WalletCardVisual({ state, focusField }: { state: WalletCardState; focusField: WalletCardField }) {
+export function WalletCardVisual({
+  state,
+  focusField,
+}: {
+  state: WalletCardState;
+  focusField: WalletCardField;
+}) {
   const { number, holder, month, year, cvv } = state;
   const isFlipped = focusField === "cvv";
 
@@ -65,7 +71,9 @@ export function WalletCardVisual({ state, focusField }: { state: WalletCardState
         <div className="wc-number" aria-label="Card number">
           {slots.map((slot, i) => (
             <span className="wc-slot" key={i}>
-              <span className={`wc-digit ${slot.filled ? "wc-digit--filled" : ""}`}>
+              <span
+                className={`wc-digit ${slot.filled ? "wc-digit--filled" : ""}`}
+              >
                 <span className="wc-row">#</span>
                 <span className="wc-row">{slot.textTop}</span>
               </span>

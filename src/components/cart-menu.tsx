@@ -7,7 +7,11 @@ import type { Timestamp } from "firebase/firestore";
 import { useAuth } from "@/components/auth-provider";
 import { useCartUI } from "@/components/cart-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   cancelOrderAsBuyer,
   clearBuyerHistory,
@@ -31,7 +35,9 @@ function isRecent(order: FirestoreOrder): boolean {
 
 function formatDate(ts: Timestamp | null): string {
   if (!ts) return "Just now";
-  return ts.toDate().toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return ts
+    .toDate()
+    .toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -44,7 +50,13 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 
 const OPTIMISTIC_ID_PREFIX = "optimistic-";
 
-export function CartMenu({ size = 44, variant = "filled" }: { size?: number; variant?: "filled" | "minimal" }) {
+export function CartMenu({
+  size = 44,
+  variant = "filled",
+}: {
+  size?: number;
+  variant?: "filled" | "minimal";
+}) {
   const { user } = useAuth();
   const { open, setOpen, markInteracted, optimisticOrders } = useCartUI();
   const [orders, setOrders] = useState<FirestoreOrder[] | null>(null);
@@ -105,7 +117,9 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
     .filter(
       (o) =>
         !real.some(
-          (r) => r.productId === o.productId && Math.abs((r.createdAt?.toMillis() ?? 0) - o.createdAtMs) < 20000,
+          (r) =>
+            r.productId === o.productId &&
+            Math.abs((r.createdAt?.toMillis() ?? 0) - o.createdAtMs) < 20000,
         ),
     )
     .map((o) => ({
@@ -126,9 +140,14 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
 
   const all = [...optimisticDisplay, ...real];
   const pending = all.filter(
-    (o) => o.status === "queued" || ((o.status === "declined" || o.status === "cancelled") && isRecent(o)),
+    (o) =>
+      o.status === "queued" ||
+      ((o.status === "declined" || o.status === "cancelled") && isRecent(o)),
   );
-  const progress = all.filter((o) => o.status === "confirmed" || (o.status === "delivered" && isRecent(o)));
+  const progress = all.filter(
+    (o) =>
+      o.status === "confirmed" || (o.status === "delivered" && isRecent(o)),
+  );
   const history = real.filter((o) => !o.hiddenFromBuyerAt);
   const hasAnyActive = pending.length > 0 || progress.length > 0;
   const activeList = tab === "Pending" ? pending : progress;
@@ -167,10 +186,16 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
           style={
             variant === "minimal"
               ? { width: size, height: size }
-              : { backgroundColor: "var(--cherry-deep)", width: size, height: size }
+              : {
+                  backgroundColor: "var(--cherry-deep)",
+                  width: size,
+                  height: size,
+                }
           }
         >
-          <Truck className={variant === "minimal" ? "size-[60%]" : "size-1/2"} />
+          <Truck
+            className={variant === "minimal" ? "size-[60%]" : "size-1/2"}
+          />
         </button>
       </PopoverTrigger>
 
@@ -202,7 +227,9 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
               </div>
               <div className="no-scrollbar mt-3 flex max-h-64 flex-col gap-2 overflow-y-auto">
                 {history.length === 0 && (
-                  <p className="py-6 text-center text-xs text-muted-foreground">No history yet.</p>
+                  <p className="py-6 text-center text-xs text-muted-foreground">
+                    No history yet.
+                  </p>
                 )}
                 {history.map((order) => (
                   <div
@@ -210,11 +237,18 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
                     className="flex items-center gap-3 rounded-2xl border p-3"
                     style={{ borderColor: "rgba(22,24,28,0.12)" }}
                   >
-                    <img src={order.productImage} alt="" className="size-10 shrink-0 rounded-lg object-cover" />
+                    <img
+                      src={order.productImage}
+                      alt=""
+                      className="size-10 shrink-0 rounded-lg object-cover"
+                    />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-bold">{order.productName}</p>
+                      <p className="truncate text-xs font-bold">
+                        {order.productName}
+                      </p>
                       <p className="truncate text-[11px] text-muted-foreground">
-                        {formatDate(order.createdAt)} · {STATUS_LABEL[order.status]}
+                        {formatDate(order.createdAt)} ·{" "}
+                        {STATUS_LABEL[order.status]}
                       </p>
                     </div>
                   </div>
@@ -251,14 +285,19 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
                 </div>
               ) : (
                 <>
-                  <div className="flex gap-1 rounded-full p-1" style={{ backgroundColor: "#111214" }}>
+                  <div
+                    className="flex gap-1 rounded-full p-1"
+                    style={{ backgroundColor: "#111214" }}
+                  >
                     {(["Pending", "On progress"] as Tab[]).map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => setTab(option)}
                         className={`flex-1 rounded-full py-1.5 text-xs font-bold transition-colors ${
-                          tab === option ? "bg-white text-[#111214]" : "text-white/70 hover:text-white"
+                          tab === option
+                            ? "bg-white text-[#111214]"
+                            : "text-white/70 hover:text-white"
                         }`}
                       >
                         {option}
@@ -268,13 +307,20 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
 
                   <div className="mt-3 flex flex-col gap-2">
                     {activeList.length === 0 && (
-                      <p className="py-6 text-center text-xs text-muted-foreground">Nothing here right now.</p>
+                      <p className="py-6 text-center text-xs text-muted-foreground">
+                        Nothing here right now.
+                      </p>
                     )}
                     {activeList.map((order) => {
-                      const isOptimistic = order.id.startsWith(OPTIMISTIC_ID_PREFIX);
+                      const isOptimistic =
+                        order.id.startsWith(OPTIMISTIC_ID_PREFIX);
                       const isActionable =
-                        !isOptimistic && (order.status === "queued" || order.status === "confirmed");
-                      const isFlagged = order.status === "declined" || order.status === "cancelled";
+                        !isOptimistic &&
+                        (order.status === "queued" ||
+                          order.status === "confirmed");
+                      const isFlagged =
+                        order.status === "declined" ||
+                        order.status === "cancelled";
                       const isSuccess = order.status === "delivered";
                       return (
                         <div
@@ -300,24 +346,35 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
                             className="size-11 shrink-0 rounded-lg object-cover"
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-bold">{order.productName}</p>
+                            <p className="truncate text-xs font-bold">
+                              {order.productName}
+                            </p>
                             <p className="truncate text-[11px] text-muted-foreground">
-                              {formatDate(order.createdAt)} · {order.sellerName ?? "Uni Door Dash"}
+                              {formatDate(order.createdAt)} ·{" "}
+                              {order.sellerName ?? "Uni Door Dash"}
                             </p>
                             <p className="truncate text-[11px] font-semibold">
-                              {isOptimistic ? "Placing order…" : STATUS_LABEL[order.status]}
+                              {isOptimistic
+                                ? "Placing order…"
+                                : STATUS_LABEL[order.status]}
                             </p>
                           </div>
                           {isOptimistic && (
                             <span
                               className="size-4 shrink-0 animate-spin rounded-full border-2 border-t-transparent"
-                              style={{ borderColor: "rgba(22,24,28,0.25)", borderTopColor: "transparent" }}
+                              style={{
+                                borderColor: "rgba(22,24,28,0.25)",
+                                borderTopColor: "transparent",
+                              }}
                             />
                           )}
                           {!isOptimistic && order.status === "confirmed" && (
                             <span
                               className="size-4 shrink-0 animate-spin rounded-full border-2 border-t-transparent"
-                              style={{ borderColor: "rgba(22,24,28,0.25)", borderTopColor: "transparent" }}
+                              style={{
+                                borderColor: "rgba(22,24,28,0.25)",
+                                borderTopColor: "transparent",
+                              }}
                             />
                           )}
                           {isActionable && (
@@ -333,7 +390,11 @@ export function CartMenu({ size = 44, variant = "filled" }: { size?: number; var
                               </button>
                               <button
                                 type="button"
-                                onClick={() => toast("Approving orders is for the admin only.")}
+                                onClick={() =>
+                                  toast(
+                                    "Approving orders is for the admin only.",
+                                  )
+                                }
                                 title="Awaiting admin approval"
                                 className="grid size-7 place-items-center rounded-full text-white transition-opacity hover:opacity-90"
                                 style={{ backgroundColor: "#111214" }}

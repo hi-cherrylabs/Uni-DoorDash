@@ -6,7 +6,11 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from "firebase/firestore";
-import { getMessaging, isSupported as isMessagingSupported, type Messaging } from "firebase/messaging";
+import {
+  getMessaging,
+  isSupported as isMessagingSupported,
+  type Messaging,
+} from "firebase/messaging";
 
 // Single source of truth for who the admin is. The dashboard nav link, the
 // /dashboard route guard, the "Create a Piece" form, and the Firestore
@@ -31,7 +35,9 @@ const firebaseConfig = {
 // getApps()/getApp() guard against "app already initialized" errors that
 // would otherwise occur on every hot-reload in dev, or if this module is
 // evaluated more than once (e.g. once during SSR, once client-side).
-export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+export const firebaseApp = getApps().length
+  ? getApp()
+  : initializeApp(firebaseConfig);
 
 // NOTE: this is intentionally not called during server-side rendering.
 // Firebase Auth's browser persistence (IndexedDB/localStorage) needs a real
@@ -69,7 +75,9 @@ export function getFirestoreDb() {
   if (!firestoreInstance) {
     try {
       firestoreInstance = initializeFirestore(firebaseApp, {
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
       });
     } catch {
       // initializeFirestore throws if Firestore was already touched via

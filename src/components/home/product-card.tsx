@@ -55,7 +55,9 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="mt-3">
         <h3 className="truncate text-sm font-bold">{product.name}</h3>
-        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{product.description}</p>
+        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+          {product.description}
+        </p>
         <div className="mt-2 flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
             <img
@@ -63,7 +65,9 @@ export function ProductCard({ product }: { product: Product }) {
               alt={product.seller.name}
               className="size-5 shrink-0 rounded-full object-cover"
             />
-            <span className="truncate text-[11px] text-muted-foreground">{product.seller.name}</span>
+            <span className="truncate text-[11px] text-muted-foreground">
+              {product.seller.name}
+            </span>
           </div>
           <span className="shrink-0 text-sm font-bold">${product.price}</span>
         </div>
@@ -76,7 +80,11 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
       </div>
 
-      <OrderConfirmDialog product={product} open={confirmOpen} onOpenChange={setConfirmOpen} />
+      <OrderConfirmDialog
+        product={product}
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+      />
     </article>
   );
 }

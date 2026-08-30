@@ -14,7 +14,10 @@ export function FilterDropdown({
   const { dark } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
+  const [indicator, setIndicator] = useState<{
+    left: number;
+    width: number;
+  } | null>(null);
 
   useEffect(() => {
     const update = () => {
@@ -23,7 +26,10 @@ export function FilterDropdown({
       if (!el || !container) return;
       const elRect = el.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
-      setIndicator({ left: elRect.left - containerRect.left, width: elRect.width });
+      setIndicator({
+        left: elRect.left - containerRect.left,
+        width: elRect.width,
+      });
     };
     update();
     window.addEventListener("resize", update);
@@ -47,15 +53,19 @@ export function FilterDropdown({
               ? {
                   left: indicator.left,
                   width: indicator.width,
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.14))",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.5)",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.14))",
+                  boxShadow:
+                    "0 2px 10px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.5)",
                   backdropFilter: "blur(6px)",
                 }
               : {
                   left: indicator.left,
                   width: indicator.width,
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.65))",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.9)",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.65))",
+                  boxShadow:
+                    "0 2px 10px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.9)",
                   backdropFilter: "blur(6px)",
                 }
           }
@@ -70,7 +80,9 @@ export function FilterDropdown({
           type="button"
           onClick={() => onChange(option)}
           className={`relative z-10 shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-            value === option ? "text-cherry-deep" : "text-foreground/80 hover:text-foreground"
+            value === option
+              ? "text-cherry-deep"
+              : "text-foreground/80 hover:text-foreground"
           }`}
         >
           {option}

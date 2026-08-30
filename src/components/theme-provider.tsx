@@ -10,6 +10,8 @@ import {
 type ThemeContextValue = {
   dark: boolean;
   toggle: (event?: { clientX: number; clientY: number }) => void;
+  /** Sets the theme explicitly rather than flipping it — used by the onboarding theme picker, which offers two named choices rather than a toggle. */
+  setDark: (value: boolean) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -54,25 +56,29 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       Math.max(y, window.innerHeight - y),
     );
 
-    doc.startViewTransition(() => flip()).ready.then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${radius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 900,
-          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-          pseudoElement: "::view-transition-new(root)",
-        },
-      );
-    });
+    doc
+      .startViewTransition(() => flip())
+      .ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${radius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: 900,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            pseudoElement: "::view-transition-new(root)",
+          },
+        );
+      });
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ dark, toggle }}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={{ dark, toggle, setDark }}>
+      {children}
+    </ThemeContext.Provider>
   );
 }
 

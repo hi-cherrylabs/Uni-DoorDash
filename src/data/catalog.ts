@@ -190,7 +190,12 @@ export const PRODUCTS: Product[] = [
     },
   },
 ];
-export const CATEGORIES = [`Perfumes`, `Clothing`, `Accessories`, `Home & Living`];
+export const CATEGORIES = [
+  `Perfumes`,
+  `Clothing`,
+  `Accessories`,
+  `Home & Living`,
+];
 export const ADS = [
   {
     id: `a1`,
@@ -213,7 +218,13 @@ export const ADS = [
     media: `https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&w=1600&q=80`,
   },
 ];
-export const FILTER_CHIPS = [`New arrivals`, `Best sellers`, `Top rated`, `On sale`, `This week`];
+export const FILTER_CHIPS = [
+  `New arrivals`,
+  `Best sellers`,
+  `Top rated`,
+  `On sale`,
+  `This week`,
+];
 export const STORES: Store[] = [
   {
     id: `store-maison-cherie`,

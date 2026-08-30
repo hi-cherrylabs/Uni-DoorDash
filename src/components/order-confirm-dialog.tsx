@@ -94,14 +94,20 @@ export function OrderConfirmDialog({
       <DialogContent className="glass-card text-center">
         {placed ? (
           <div className="flex flex-col items-center gap-2 py-2">
-            <div className="grid size-14 place-items-center rounded-full bg-accent text-2xl">✅</div>
+            <div className="grid size-14 place-items-center rounded-full bg-accent text-2xl">
+              ✅
+            </div>
             <p className="text-lg font-bold">Your order is queued</p>
-            <p className="text-sm text-muted-foreground">We'll keep you posted on {product.name}.</p>
+            <p className="text-sm text-muted-foreground">
+              We'll keep you posted on {product.name}.
+            </p>
           </div>
         ) : (
           <>
             <div className="flex flex-col items-center gap-2 pt-1">
-              <div className="grid size-14 place-items-center rounded-full bg-accent text-2xl">🛍️</div>
+              <div className="grid size-14 place-items-center rounded-full bg-accent text-2xl">
+                🛍️
+              </div>
               <p className="text-lg font-bold">Place this order?</p>
               <p className="text-sm text-muted-foreground">
                 {product.name} — Tsh {product.price.toLocaleString()}
@@ -113,9 +119,14 @@ export function OrderConfirmDialog({
                 disabled={placing}
                 onClick={() => void handleConfirm()}
                 className="rounded-full py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)" }}
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+                }}
               >
-                {placing ? "Placing order…" : "Confirm to place order — Cash on delivery"}
+                {placing
+                  ? "Placing order…"
+                  : "Confirm to place order — Cash on delivery"}
               </button>
               <button
                 type="button"

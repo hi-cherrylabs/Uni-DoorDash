@@ -4,7 +4,10 @@ import { toast } from "sonner";
 import type { Timestamp } from "firebase/firestore";
 
 import { PRODUCTS } from "@/data/catalog";
-import { useHiddenStaticProductIds, useLiveProducts } from "@/hooks/use-products";
+import {
+  useHiddenStaticProductIds,
+  useLiveProducts,
+} from "@/hooks/use-products";
 import {
   deleteProduct,
   hideStaticProduct,
@@ -25,7 +28,11 @@ type ManagedProduct = {
 
 function formatDate(ts: Timestamp | null): string {
   if (!ts) return "Just now";
-  return ts.toDate().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return ts.toDate().toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export function ProductManagement() {
@@ -46,16 +53,14 @@ export function ProductManagement() {
     (orders ?? []).filter((o) => o.productId === productId).length;
 
   const managed: ManagedProduct[] = [
-    ...liveProducts.map(
-      (p): ManagedProduct => ({
-        id: p.id,
-        name: p.name,
-        image: p.image,
-        category: p.category,
-        postedLabel: `Posted ${formatDate(p.createdAt)}`,
-        kind: "live",
-      }),
-    ),
+    ...liveProducts.map((p): ManagedProduct => ({
+      id: p.id,
+      name: p.name,
+      image: p.image,
+      category: p.category,
+      postedLabel: `Posted ${formatDate(p.createdAt)}`,
+      kind: "live",
+    })),
     ...PRODUCTS.filter((p) => !hiddenIds.has(p.id)).map(
       (p): ManagedProduct => ({
         id: p.id,
@@ -85,7 +90,11 @@ export function ProductManagement() {
   }
 
   if (managed.length === 0) {
-    return <p className="mt-8 text-center text-sm text-muted-foreground">No products to manage yet.</p>;
+    return (
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        No products to manage yet.
+      </p>
+    );
   }
 
   return (
@@ -96,11 +105,16 @@ export function ProductManagement() {
           className="flex items-center gap-4 rounded-2xl p-4 shadow-md"
           style={{ backgroundColor: "var(--app-main-flat)" }}
         >
-          <img src={product.image} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
+          <img
+            src={product.image}
+            alt=""
+            className="size-12 shrink-0 rounded-lg object-cover"
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold">{product.name}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {product.category} · {product.postedLabel} · {orderCountFor(product.id)} order
+              {product.category} · {product.postedLabel} ·{" "}
+              {orderCountFor(product.id)} order
               {orderCountFor(product.id) === 1 ? "" : "s"} since posted
             </p>
           </div>

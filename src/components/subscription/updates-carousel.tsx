@@ -5,7 +5,11 @@ import { useTheme } from "@/components/theme-provider";
 
 const AUTOPLAY_MS = 3000;
 
-export function UpdatesCarousel({ items }: { items: { id: string; title: string; src: string }[] }) {
+export function UpdatesCarousel({
+  items,
+}: {
+  items: { id: string; title: string; src: string }[];
+}) {
   const { dark } = useTheme();
   const [index, setIndex] = useState(0);
 
@@ -47,10 +51,17 @@ export function UpdatesCarousel({ items }: { items: { id: string; title: string;
               pointerEvents: isActive ? "auto" : "none",
             }}
           >
-            <img src={item.src} alt={item.title} loading="lazy" className="size-full object-cover" />
+            <img
+              src={item.src}
+              alt={item.title}
+              loading="lazy"
+              className="size-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-5">
-              <h3 className="text-xl font-extrabold text-white sm:text-2xl">{item.title}</h3>
+              <h3 className="text-xl font-extrabold text-white sm:text-2xl">
+                {item.title}
+              </h3>
             </div>
           </article>
         );

@@ -25,9 +25,9 @@ import { MobileDock } from "@/components/mobile/mobile-dock";
 import { AccountMenu } from "@/components/account-menu";
 import { CartMenu } from "@/components/cart-menu";
 
-
 function ShopNowButton({ collapsed = false }: { collapsed?: boolean }) {
-  const isActive = useRouterState({ select: (s) => s.location.pathname }) === "/";
+  const isActive =
+    useRouterState({ select: (s) => s.location.pathname }) === "/";
 
   return (
     <Link
@@ -36,8 +36,11 @@ function ShopNowButton({ collapsed = false }: { collapsed?: boolean }) {
       title={collapsed ? "Shop now" : undefined}
       className="nav-item mb-1 w-full border text-white"
       style={{
-        background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
-        borderColor: isActive ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.25)",
+        background:
+          "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+        borderColor: isActive
+          ? "rgba(255,255,255,0.6)"
+          : "rgba(255,255,255,0.25)",
         justifyContent: collapsed ? "center" : undefined,
         paddingInline: collapsed ? 0 : undefined,
       }}
@@ -58,7 +61,11 @@ const BASE_NAV_ITEMS = [
   { label: "Stores", to: "/stores", icon: Store },
 ] as const;
 
-const DASHBOARD_NAV_ITEM = { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard } as const;
+const DASHBOARD_NAV_ITEM = {
+  label: "Dashboard",
+  to: "/dashboard",
+  icon: LayoutDashboard,
+} as const;
 
 const SECONDARY_ACTIONS = [
   { label: "Invite members", icon: UserPlus },
@@ -82,7 +89,9 @@ export function AppLayout({
   // The Dashboard link — and the route behind it — is completely invisible
   // to anyone signed in as someone other than the admin account. Direct
   // navigation to /dashboard is separately blocked in routes/dashboard.tsx.
-  const navItems = isAdmin ? [...BASE_NAV_ITEMS, DASHBOARD_NAV_ITEM] : BASE_NAV_ITEMS;
+  const navItems = isAdmin
+    ? [...BASE_NAV_ITEMS, DASHBOARD_NAV_ITEM]
+    : BASE_NAV_ITEMS;
 
   return (
     <div
@@ -123,7 +132,9 @@ export function AppLayout({
                   title={collapsed ? item.label : undefined}
                   className="nav-item"
                   style={{
-                    backgroundColor: isActive ? "var(--cherry-deep)" : undefined,
+                    backgroundColor: isActive
+                      ? "var(--cherry-deep)"
+                      : undefined,
                     color: isActive ? "var(--primary-foreground)" : undefined,
                     justifyContent: collapsed ? "center" : undefined,
                     paddingInline: collapsed ? 0 : undefined,
@@ -151,7 +162,9 @@ export function AppLayout({
               backgroundColor:
                 pathname === "/subscription" ? "var(--cherry-deep)" : undefined,
               color:
-                pathname === "/subscription" ? "var(--primary-foreground)" : undefined,
+                pathname === "/subscription"
+                  ? "var(--primary-foreground)"
+                  : undefined,
               justifyContent: collapsed ? "center" : undefined,
               paddingInline: collapsed ? 0 : undefined,
             }}
@@ -165,7 +178,9 @@ export function AppLayout({
             </span>
           </Link>
 
-          <div className={`flex items-center gap-2 ${collapsed ? "flex-col" : ""}`}>
+          <div
+            className={`flex items-center gap-2 ${collapsed ? "flex-col" : ""}`}
+          >
             {SECONDARY_ACTIONS.map((action) => {
               const Icon = action.icon;
               return (
@@ -217,13 +232,16 @@ export function AppLayout({
             marginBottom: 0,
             borderTopLeftRadius: "var(--panel-radius)",
             borderTopRightRadius: "var(--panel-radius)",
-            backgroundColor: variant === "flat" ? "var(--app-main-flat)" : undefined,
+            backgroundColor:
+              variant === "flat" ? "var(--app-main-flat)" : undefined,
             transition: "margin 300ms ease-in-out",
           }}
         >
           {variant === "gradient" && <div className="panel-veil" />}
           <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden mobile-scroll-hide">
-            <div className="page-enter mobile-page px-5 py-8 sm:px-8 md:px-12">{children}</div>
+            <div className="page-enter mobile-page px-5 py-8 sm:px-8 md:px-12">
+              {children}
+            </div>
           </div>
         </main>
       </div>
@@ -265,7 +283,6 @@ export function AppLayout({
           <Heart className="size-5" />
         </button>
       </div>
-
     </div>
   );
 }

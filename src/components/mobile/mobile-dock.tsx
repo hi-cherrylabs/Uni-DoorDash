@@ -1,6 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Mail, Menu, Moon, Plus, Shield, Sun, UserPlus, X } from "lucide-react";
+import {
+  Heart,
+  Mail,
+  Menu,
+  Moon,
+  Plus,
+  Shield,
+  Sun,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import logo from "@/assets/udd-logo.png";
@@ -40,7 +50,11 @@ export function MobileDock() {
       <div className="px-1.5 pt-1.5">
         <div className="mobile-dock flex items-center justify-between gap-3 rounded-full px-4 py-2">
           <Link to="/" className="flex shrink-0 items-center">
-            <img src={logo} alt="Uni Door Dash" className="h-6 w-auto object-contain" />
+            <img
+              src={logo}
+              alt="Uni Door Dash"
+              className="h-6 w-auto object-contain"
+            />
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
@@ -52,7 +66,11 @@ export function MobileDock() {
               onClick={() => setOpen((v) => !v)}
               className="grid size-9 place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
             >
-              {open ? <X className="size-[18px]" /> : <Menu className="size-[18px]" />}
+              {open ? (
+                <X className="size-[18px]" />
+              ) : (
+                <Menu className="size-[18px]" />
+              )}
             </button>
             <button
               type="button"
@@ -105,7 +123,11 @@ export function MobileDock() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.35, delay: 0.06 }}
+                transition={{
+                  ease: [0.22, 1, 0.36, 1],
+                  duration: 0.35,
+                  delay: 0.06,
+                }}
               >
                 {[
                   { label: "Invite members", Icon: UserPlus },
@@ -128,7 +150,11 @@ export function MobileDock() {
                   onClick={(event) => toggleTheme(event)}
                   className="grid size-9 place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
                 >
-                  {dark ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+                  {dark ? (
+                    <Sun className="size-[18px]" />
+                  ) : (
+                    <Moon className="size-[18px]" />
+                  )}
                 </button>
               </motion.div>
             </motion.div>

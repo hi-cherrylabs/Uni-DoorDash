@@ -11,7 +11,9 @@ import {
 export function useLiveProducts(): FirestoreProduct[] {
   const [products, setProducts] = useState<FirestoreProduct[]>([]);
   useEffect(() => {
-    const unsubscribe = subscribeToProducts(setProducts, () => setProducts((prev) => prev));
+    const unsubscribe = subscribeToProducts(setProducts, () =>
+      setProducts((prev) => prev),
+    );
     return unsubscribe;
   }, []);
   return products;

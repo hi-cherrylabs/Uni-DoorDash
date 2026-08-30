@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { getFirebaseAuth } from "@/lib/firebase";
-import { subscribeToAllOrders, setOrderStatus, type FirestoreOrder } from "@/lib/firestore-data";
+import {
+  subscribeToAllOrders,
+  setOrderStatus,
+  type FirestoreOrder,
+} from "@/lib/firestore-data";
 import { notifyBuyer } from "@/server/push-notify";
 
 const STATUS_LABEL: Record<FirestoreOrder["status"], string> = {
@@ -26,7 +30,10 @@ export function OrderProgressList() {
     return unsubscribe;
   }, []);
 
-  async function updateStatus(order: FirestoreOrder, status: FirestoreOrder["status"]) {
+  async function updateStatus(
+    order: FirestoreOrder,
+    status: FirestoreOrder["status"],
+  ) {
     setBusyId(order.id);
     try {
       await setOrderStatus(order.id, status);
@@ -60,7 +67,11 @@ export function OrderProgressList() {
   }
 
   if (orders === null) {
-    return <p className="mt-8 text-center text-sm text-muted-foreground">Loading orders…</p>;
+    return (
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        Loading orders…
+      </p>
+    );
   }
 
   if (orders.length === 0) {
@@ -81,11 +92,16 @@ export function OrderProgressList() {
             className="flex items-center gap-4 rounded-2xl p-4 shadow-md"
             style={{ backgroundColor: "var(--app-main-flat)" }}
           >
-            <img src={order.productImage} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
+            <img
+              src={order.productImage}
+              alt=""
+              className="size-12 shrink-0 rounded-lg object-cover"
+            />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold">{order.productName}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {order.buyerEmail} · Tsh {order.price.toLocaleString()} · {STATUS_LABEL[order.status]}
+                {order.buyerEmail} · Tsh {order.price.toLocaleString()} ·{" "}
+                {STATUS_LABEL[order.status]}
               </p>
             </div>
             <div className="flex shrink-0 gap-2">

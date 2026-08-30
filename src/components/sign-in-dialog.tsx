@@ -27,11 +27,20 @@ function AppleIcon() {
 export function SignInDialog({
   open,
   onOpenChange,
+  dismissible = true,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * False for the sign-in wall (AppGate): the card can't be closed by
+   * clicking outside, pressing Escape, or an "X" button — the only way
+   * through is to actually sign in. True (default) for any future
+   * voluntary/dismissible use of this same card elsewhere.
+   */
+  dismissible?: boolean;
 }) {
-  const { error, signInGoogle, signInApple, signInEmail, signUpEmail } = useAuth();
+  const { error, signInGoogle, signInApple, signInEmail, signUpEmail } =
+    useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,13 +58,28 @@ export function SignInDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-card text-center">
+    <Dialog open={open} onOpenChange={dismissible ? onOpenChange : () => {}}>
+      <DialogContent
+        className="glass-card text-center"
+        hideCloseButton={!dismissible}
+        onInteractOutside={(event) => {
+          if (!dismissible) event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          if (!dismissible) event.preventDefault();
+        }}
+      >
         <div className="flex flex-col items-center gap-1 pt-2">
-          <img src={logo} alt="Uni Door Dash" className="h-9 w-auto object-contain" />
+          <img
+            src={logo}
+            alt="Uni Door Dash"
+            className="h-9 w-auto object-contain"
+          />
           <p className="mt-2 text-lg font-semibold">Uni Door Dash</p>
           <p className="text-sm text-muted-foreground">
-            {mode === "signin" ? "Sign in to continue" : "Create an account to continue"}
+            {mode === "signin"
+              ? "Sign in to continue"
+              : "Create an account to continue"}
           </p>
         </div>
 
@@ -84,7 +108,10 @@ export function SignInDialog({
           <span className="h-px flex-1 bg-border" />
         </div>
 
-        <form onSubmit={handleEmailSubmit} className="flex flex-col gap-2.5 text-left">
+        <form
+          onSubmit={handleEmailSubmit}
+          className="flex flex-col gap-2.5 text-left"
+        >
           <input
             type="email"
             required
@@ -98,22 +125,33 @@ export function SignInDialog({
             type="password"
             required
             minLength={6}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            autoComplete={
+              mode === "signin" ? "current-password" : "new-password"
+            }
             placeholder="Password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-lg bg-accent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
           />
 
-          {error && <p className="text-xs font-medium text-destructive">{error}</p>}
+          {error && (
+            <p className="text-xs font-medium text-destructive">{error}</p>
+          )}
 
           <button
             type="submit"
             disabled={submitting}
             className="mt-1 w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+            }}
           >
-            {submitting ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+            {submitting
+              ? "Please wait…"
+              : mode === "signin"
+                ? "Sign in"
+                : "Create account"}
           </button>
         </form>
 
@@ -122,7 +160,9 @@ export function SignInDialog({
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           className="text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
         >
-          {mode === "signin" ? "Don't have an account? Create one" : "Already have an account? Sign in"}
+          {mode === "signin"
+            ? "Don't have an account? Create one"
+            : "Already have an account? Sign in"}
         </button>
 
         <p className="text-[11px] leading-snug text-muted-foreground">

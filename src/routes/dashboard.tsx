@@ -16,7 +16,8 @@ export const Route = createFileRoute("/dashboard")({
       { title: "Dashboard — Uni Door Dash" },
       {
         name: "description",
-        content: "Create listings and track orders on your Uni Door Dash seller dashboard.",
+        content:
+          "Create listings and track orders on your Uni Door Dash seller dashboard.",
       },
       { property: "og:title", content: "Dashboard — Uni Door Dash" },
       { property: "og:type", content: "website" },
@@ -38,7 +39,9 @@ function Page() {
   if (!ready) {
     return (
       <AppLayout>
-        <p className="mt-16 text-center text-sm text-muted-foreground">Loading…</p>
+        <p className="mt-16 text-center text-sm text-muted-foreground">
+          Loading…
+        </p>
       </AppLayout>
     );
   }
@@ -47,7 +50,9 @@ function Page() {
     return (
       <AppLayout>
         <div className="mx-auto mt-16 max-w-md text-center">
-          <div className="mx-auto grid size-14 place-items-center rounded-full bg-accent text-2xl">🔒</div>
+          <div className="mx-auto grid size-14 place-items-center rounded-full bg-accent text-2xl">
+            🔒
+          </div>
           <h1 className="mt-4 text-xl font-bold">Admins only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             The dashboard is reserved for the Uni Door Dash admin account.

@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
-
-import { useAuth } from "@/components/auth-provider";
+import { useEffect, useRef } from "react";
 
 /**
  * Ports the draw/undo/redraw Web Animations API sequence from the provided
  * loader-small.html verbatim (same timeline math, same easing, same
  * durations) — just swapping getElementById for refs since this now lives
- * inside React instead of a standalone page.
+ * inside React instead of a standalone page. Exported so <AppGate> can reuse
+ * it for every "syncing with your account" loading moment, not just the
+ * very first app load.
  */
-function CherryLoader() {
+export function CherryLoader() {
   const strokeRef = useRef<SVGPathElement>(null);
   const brightRef = useRef<SVGPathElement>(null);
   const blackRef = useRef<SVGPathElement>(null);
@@ -122,7 +121,10 @@ function CherryLoader() {
 
   return (
     <div style={{ width: 88, height: 62 }}>
-      <svg viewBox="0 0 221.8 157.7" style={{ width: "100%", height: "100%", overflow: "visible" }}>
+      <svg
+        viewBox="0 0 221.8 157.7"
+        style={{ width: "100%", height: "100%", overflow: "visible" }}
+      >
         <defs>
           <linearGradient id="strokeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#e85c8a" />
@@ -173,42 +175,13 @@ function CherryLoader() {
   );
 }
 
-/**
- * Blocks the rest of the app from rendering at all until Firebase Auth's
- * initial check resolves (`ready`). This is deliberately stronger than just
- * covering the screen with an overlay — nothing underneath mounts, so
- * there's no flash of an unauthenticated/incomplete page before the
- * sign-in card (for new visitors) or real content (for returning ones) is
- * ready to show. Always a fixed deep-charcoal background regardless of
- * light/dark theme — this is a brief, theme-independent transition state,
- * not a themed page.
- */
-export function LoadingGate({ children }: { children: ReactNode }) {
-  const { ready } = useAuth();
-  const [overlayVisible, setOverlayVisible] = useState(true);
-
-  useEffect(() => {
-    if (!ready) return;
-    // Small delay so the fade-out is a deliberate transition rather than an
-    // abrupt cut, and so the first-visit sign-in card (which opens on this
-    // same `ready` transition) has a tick to be in place before the
-    // overlay clears.
-    const timer = setTimeout(() => setOverlayVisible(false), 220);
-    return () => clearTimeout(timer);
-  }, [ready]);
-
+export function FullScreenLoader() {
   return (
-    <>
-      {ready ? children : null}
-      {overlayVisible && (
-        <div
-          aria-hidden={ready}
-          className="fixed inset-0 z-[300] grid place-items-center transition-opacity duration-500"
-          style={{ backgroundColor: "#121212", opacity: ready ? 0 : 1 }}
-        >
-          <CherryLoader />
-        </div>
-      )}
-    </>
+    <div
+      className="fixed inset-0 z-[300] grid place-items-center"
+      style={{ backgroundColor: "#121212" }}
+    >
+      <CherryLoader />
+    </div>
   );
 }

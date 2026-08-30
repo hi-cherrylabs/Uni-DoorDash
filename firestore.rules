@@ -78,6 +78,18 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---- users ----
+    // One profile doc per account, keyed by uid, written incrementally by
+    // the onboarding flow. A person can only read/write their own profile —
+    // this is also what the onboarding wall relies on client-side, but the
+    // enforcement that actually matters lives here: nobody can read or
+    // tamper with another account's profile via the SDK directly. The admin
+    // does not get special read access here on purpose — profile data
+    // (phone, location, business info) is personal, not moderation data.
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
     // ---- pushTokens ----
     // One doc per signed-in device, keyed by uid. Only that user can write
     // their own token (never anyone else's). No client ever needs to READ

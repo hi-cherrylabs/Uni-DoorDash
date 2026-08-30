@@ -34,7 +34,8 @@ export function WalletCardForm() {
       month: validMonth,
       year: validYear,
       cvv: validCvv,
-      allValid: validNumber && validHolder && validMonth && validYear && validCvv,
+      allValid:
+        validNumber && validHolder && validMonth && validYear && validCvv,
     };
   }, [number, holder, month, year, cvv]);
 
@@ -52,7 +53,10 @@ export function WalletCardForm() {
 
   if (saved) {
     return (
-      <div className="flex items-center gap-4 rounded-3xl p-4 shadow-lg" style={{ backgroundColor: "var(--app-main-flat)" }}>
+      <div
+        className="flex items-center gap-4 rounded-3xl p-4 shadow-lg"
+        style={{ backgroundColor: "var(--app-main-flat)" }}
+      >
         <div className="wc-scale-down">
           <WalletCardVisual state={state} focusField={null} />
         </div>
@@ -69,13 +73,23 @@ export function WalletCardForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6 rounded-3xl p-5 shadow-lg sm:p-7 lg:flex-row lg:items-start" style={{ backgroundColor: "var(--app-main-flat)" }}>
+    <div
+      className="flex flex-col gap-6 rounded-3xl p-5 shadow-lg sm:p-7 lg:flex-row lg:items-start"
+      style={{ backgroundColor: "var(--app-main-flat)" }}
+    >
       <div className="mx-auto w-full max-w-[420px] shrink-0 lg:mx-0">
         <WalletCardVisual state={state} focusField={focusField} />
       </div>
-      <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-3">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex w-full flex-col gap-3"
+      >
         <div>
-          <label htmlFor="wc-number" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label
+            htmlFor="wc-number"
+            className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          >
             Card number
           </label>
           <input
@@ -91,7 +105,10 @@ export function WalletCardForm() {
           />
         </div>
         <div>
-          <label htmlFor="wc-holder" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label
+            htmlFor="wc-holder"
+            className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          >
             Card holder
           </label>
           <input
@@ -122,7 +139,9 @@ export function WalletCardForm() {
                 <option value="" disabled>
                   MM
                 </option>
-                {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((m) => (
+                {Array.from({ length: 12 }, (_, i) =>
+                  String(i + 1).padStart(2, "0"),
+                ).map((m) => (
                   <option value={m} key={m}>
                     {m}
                   </option>
@@ -147,7 +166,10 @@ export function WalletCardForm() {
             </div>
           </div>
           <div>
-            <label htmlFor="wc-cvv" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="wc-cvv"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               CVV
             </label>
             <input
@@ -167,7 +189,10 @@ export function WalletCardForm() {
           type="submit"
           disabled={!validity.allValid}
           className="mt-2 rounded-xl py-3 text-sm font-bold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ background: "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)" }}
+          style={{
+            background:
+              "linear-gradient(135deg, var(--cherry-pink) 0%, #2f6bff 100%)",
+          }}
         >
           {validity.allValid ? "Save card" : "Complete all fields"}
         </button>

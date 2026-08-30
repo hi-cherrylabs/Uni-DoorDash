@@ -59,7 +59,9 @@ function Index() {
         <h1 className="text-5xl font-black uppercase leading-none tracking-tight text-white md:text-7xl">
           UNI DOOR DASH
         </h1>
-        <p className="font-handwritten mt-3 text-sm text-white md:text-base">shop what you want</p>
+        <p className="font-handwritten mt-3 text-sm text-white md:text-base">
+          shop what you want
+        </p>
       </header>
 
       <div
@@ -85,7 +87,9 @@ function Index() {
             type="button"
             onClick={() => setActiveChip(chip)}
             className={`rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors ${
-              activeChip === chip ? "bg-cherry-deep" : "bg-white/10 hover:bg-white/20"
+              activeChip === chip
+                ? "bg-cherry-deep"
+                : "bg-white/10 hover:bg-white/20"
             }`}
           >
             {chip}
@@ -97,7 +101,8 @@ function Index() {
         <div
           className="relative overflow-hidden py-2"
           style={{
-            maskImage: "linear-gradient(90deg, transparent, black 4%, black 96%, transparent)",
+            maskImage:
+              "linear-gradient(90deg, transparent, black 4%, black 96%, transparent)",
           }}
         >
           <div className="slide-track flex w-max gap-6">
@@ -128,7 +133,9 @@ function Index() {
           style={{ backgroundColor: "var(--app-main-flat)" }}
         >
           <div className="mb-6 flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-extrabold uppercase tracking-wide">Whats new</h2>
+            <h2 className="text-2xl font-extrabold uppercase tracking-wide">
+              Whats new
+            </h2>
             <Link
               to="/market-place"
               className="flex shrink-0 items-center gap-1.5 rounded-full bg-cherry-deep px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"

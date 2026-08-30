@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 type SidebarContextValue = { collapsed: boolean; toggle: () => void };
 
@@ -34,6 +40,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
 export function useSidebar() {
   const context = useContext(SidebarContext);
-  if (!context) throw new Error("useSidebar must be used inside a SidebarProvider");
+  if (!context)
+    throw new Error("useSidebar must be used inside a SidebarProvider");
   return context;
 }

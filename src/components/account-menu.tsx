@@ -1,10 +1,14 @@
-import { LogOut, User } from "lucide-react";
+import { LogOut, MapPin, Phone, Building2, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 function initials(name: string | null, email: string | null): string {
   const source = (name?.trim() || email?.split("@")[0] || "U").trim();
@@ -12,30 +16,17 @@ function initials(name: string | null, email: string | null): string {
 }
 
 /**
- * Replaces the old plain sign-in/sign-out icon button. Signed out: same
- * button as before, opens the sign-in card. Signed in: becomes the user's
- * avatar; pressing it opens a glass profile popover anchored to the avatar
- * instead of immediately signing out.
+ * Signed in: the user's avatar; pressing it opens a glass profile popover.
+ * Signed out is unreachable here — <AppGate> never mounts anything from
+ * the real route tree (which is where this component lives) without a
+ * signed-in, fully onboarded user, so there's no sign-in affordance to
+ * show in that state anymore.
  */
 export function AccountMenu({ size = 44 }: { size?: number }) {
-  const { ready, user, isAdmin, openSignIn, signOutUser } = useAuth();
+  const { ready, user, profile, isAdmin, signOutUser } = useAuth();
   const [open, setOpen] = useState(false);
 
-  if (!ready) return null;
-
-  if (!user) {
-    return (
-      <button
-        type="button"
-        title="Sign in"
-        onClick={openSignIn}
-        className="grid place-items-center rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
-        style={{ backgroundColor: "var(--cherry-deep)", width: size, height: size }}
-      >
-        <User className="size-1/2" />
-      </button>
-    );
-  }
+  if (!ready || !user) return null;
 
   function comingSoon(label: string) {
     toast(`${label} — coming soon.`);
@@ -48,6 +39,7 @@ export function AccountMenu({ size = 44 }: { size?: number }) {
   }
 
   const displayName = user.name ?? user.email ?? "Account";
+  const isComplete = !!profile?.onboardingComplete;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -56,7 +48,11 @@ export function AccountMenu({ size = 44 }: { size?: number }) {
           type="button"
           title={displayName}
           className="relative grid place-items-center overflow-hidden rounded-full text-white shadow-lg transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--cherry-deep)", width: size, height: size }}
+          style={{
+            backgroundColor: "var(--cherry-deep)",
+            width: size,
+            height: size,
+          }}
         >
           <Avatar className="size-full">
             <AvatarImage src={user.photoURL ?? undefined} alt="" />
@@ -80,18 +76,61 @@ export function AccountMenu({ size = 44 }: { size?: number }) {
             </AvatarFallback>
           </Avatar>
           <p className="mt-2 truncate text-sm font-bold">{displayName}</p>
-          {isAdmin && <p className="text-[11px] text-muted-foreground">Admin account</p>}
+          {isAdmin && (
+            <p className="text-[11px] text-muted-foreground">Admin account</p>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => comingSoon("Account setup")}
-          className="glass-button-dark mt-4 w-full rounded-full py-2.5 text-xs font-bold"
-        >
-          Let's finish setting up your account
-        </button>
+        {isComplete ? (
+          <div className="mt-4 flex flex-col gap-2 rounded-2xl bg-black/5 p-3 text-xs dark:bg-white/5">
+            {profile?.districtName && profile?.ward && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="size-3.5 shrink-0" />
+                <span className="truncate text-foreground">
+                  {profile.ward} Ward, {profile.districtName}
+                </span>
+              </div>
+            )}
+            {profile?.phone && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="size-3.5 shrink-0" />
+                <span className="truncate text-foreground">
+                  {profile.phone}
+                </span>
+              </div>
+            )}
+            {profile?.email && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="size-3.5 shrink-0" />
+                <span className="truncate text-foreground">
+                  {profile.email}
+                </span>
+              </div>
+            )}
+            {profile?.ownsBusiness && profile?.businessName && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Building2 className="size-3.5 shrink-0" />
+                <span className="truncate text-foreground">
+                  {profile.businessName}
+                </span>
+              </div>
+            )}
+          </div>
+        ) : (
+          // Defensive fallback only — under the sign-in wall this shouldn't
+          // be reachable (AppGate keeps an incomplete profile inside
+          // OnboardingDataFlow, not the real app), but kept in case someone
+          // reaches this popover mid-transition.
+          <button
+            type="button"
+            onClick={() => comingSoon("Account setup")}
+            className="glass-button-dark mt-4 w-full rounded-full py-2.5 text-xs font-bold"
+          >
+            Let's finish setting up your account
+          </button>
+        )}
 
-        <div className="mt-2 flex gap-2">
+        <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={() => void handleSignOut()}

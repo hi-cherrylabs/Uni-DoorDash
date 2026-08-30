@@ -1,5 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { cert, getApps as getAdminApps, initializeApp as initializeAdminApp } from "firebase-admin/app";
+import {
+  cert,
+  getApps as getAdminApps,
+  initializeApp as initializeAdminApp,
+} from "firebase-admin/app";
 import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 
@@ -28,7 +32,11 @@ function getAdminApp() {
   return initializeAdminApp({ credential: cert(serviceAccount) });
 }
 
-async function sendToTokens(tokens: string[], title: string, body: string): Promise<void> {
+async function sendToTokens(
+  tokens: string[],
+  title: string,
+  body: string,
+): Promise<void> {
   const unique = [...new Set(tokens)].filter(Boolean);
   if (unique.length === 0) return;
   // sendEachForMulticast reports per-token success/failure rather than
@@ -48,12 +56,23 @@ export const notifyNewProduct = createServerFn({ method: "POST" })
     const db = getAdminFirestore(getAdminApp());
     const snapshot = await db.collection("pushTokens").get();
     const tokens = snapshot.docs.map((d) => d.data()["token"] as string);
-    await sendToTokens(tokens, "New on Uni Door Dash", `${data.productName} just went live.`);
+    await sendToTokens(
+      tokens,
+      "New on Uni Door Dash",
+      `${data.productName} just went live.`,
+    );
   });
 
 /** Admin only — targets one buyer's device(s). Called when their order is confirmed/delivered. */
 export const notifyBuyer = createServerFn({ method: "POST" })
-  .validator((data: { idToken: string; buyerUid: string; title: string; body: string }) => data)
+  .validator(
+    (data: {
+      idToken: string;
+      buyerUid: string;
+      title: string;
+      body: string;
+    }) => data,
+  )
   .handler(async ({ data }) => {
     await verifyAdmin(data.idToken);
     const db = getAdminFirestore(getAdminApp());
@@ -65,11 +84,24 @@ export const notifyBuyer = createServerFn({ method: "POST" })
 
 /** Any signed-in buyer — notifies the admin's device(s). Called right after placing an order. */
 export const notifyAdminNewOrder = createServerFn({ method: "POST" })
-  .validator((data: { idToken: string; productName: string; buyerName: string | null }) => data)
+  .validator(
+    (data: {
+      idToken: string;
+      productName: string;
+      buyerName: string | null;
+    }) => data,
+  )
   .handler(async ({ data }) => {
     await verifyIdToken(data.idToken); // just needs to be a real signed-in user, not necessarily admin
     const db = getAdminFirestore(getAdminApp());
-    const snapshot = await db.collection("pushTokens").where("email", "==", ADMIN_EMAIL).get();
+    const snapshot = await db
+      .collection("pushTokens")
+      .where("email", "==", ADMIN_EMAIL)
+      .get();
     const tokens = snapshot.docs.map((d) => d.data()["token"] as string);
-    await sendToTokens(tokens, "New order placed", `${data.buyerName ?? "Someone"} just ordered ${data.productName}.`);
+    await sendToTokens(
+      tokens,
+      "New order placed",
+      `${data.buyerName ?? "Someone"} just ordered ${data.productName}.`,
+    );
   });

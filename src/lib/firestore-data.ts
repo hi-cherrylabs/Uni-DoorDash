@@ -39,7 +39,10 @@ export function subscribeToProducts(
   onChange: (products: FirestoreProduct[]) => void,
   onError?: (error: unknown) => void,
 ) {
-  const q = query(collection(getFirestoreDb(), PRODUCTS_COLLECTION), orderBy("createdAt", "desc"));
+  const q = query(
+    collection(getFirestoreDb(), PRODUCTS_COLLECTION),
+    orderBy("createdAt", "desc"),
+  );
   return onSnapshot(
     q,
     (snapshot) => {
@@ -105,7 +108,8 @@ export function subscribeToHiddenStaticProductIds(
   return onSnapshot(
     ref,
     (snapshot) => {
-      const data = snapshot.data() as { hiddenProductIds?: string[] } | undefined;
+      const data = snapshot.data() as
+        { hiddenProductIds?: string[] } | undefined;
       onChange(data?.hiddenProductIds ?? []);
     },
     onError,
@@ -115,7 +119,11 @@ export function subscribeToHiddenStaticProductIds(
 /** Admin only — hides a pre-installed demo product for everyone (permanent, no undo UI). */
 export async function hideStaticProduct(productId: string): Promise<void> {
   const ref = doc(getFirestoreDb(), SETTINGS_COLLECTION, CATALOG_SETTINGS_DOC);
-  await setDoc(ref, { hiddenProductIds: arrayUnion(productId) }, { merge: true });
+  await setDoc(
+    ref,
+    { hiddenProductIds: arrayUnion(productId) },
+    { merge: true },
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -131,9 +139,14 @@ export async function hideStaticProduct(productId: string): Promise<void> {
 // affects what that buyer sees — the admin's view never filters on it.
 // ---------------------------------------------------------------------------
 
-export type OrderStatus = "queued" | "confirmed" | "declined" | "cancelled" | "delivered";
+export type OrderStatus =
+  "queued" | "confirmed" | "declined" | "cancelled" | "delivered";
 
-export const TERMINAL_STATUSES: OrderStatus[] = ["declined", "cancelled", "delivered"];
+export const TERMINAL_STATUSES: OrderStatus[] = [
+  "declined",
+  "cancelled",
+  "delivered",
+];
 
 export type FirestoreOrder = {
   id: string;
@@ -155,7 +168,10 @@ export function subscribeToAllOrders(
   onChange: (orders: FirestoreOrder[]) => void,
   onError?: (error: unknown) => void,
 ) {
-  const q = query(collection(getFirestoreDb(), ORDERS_COLLECTION), orderBy("createdAt", "desc"));
+  const q = query(
+    collection(getFirestoreDb(), ORDERS_COLLECTION),
+    orderBy("createdAt", "desc"),
+  );
   return onSnapshot(
     q,
     (snapshot) => {
@@ -222,7 +238,10 @@ export async function placeOrder(input: NewOrderInput): Promise<void> {
 }
 
 /** Admin only — confirm/decline a queued order, or mark a confirmed one delivered. */
-export async function setOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
+export async function setOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+): Promise<void> {
   await updateDoc(doc(getFirestoreDb(), ORDERS_COLLECTION, orderId), {
     status,
     resolvedAt: TERMINAL_STATUSES.includes(status) ? serverTimestamp() : null,
@@ -242,7 +261,9 @@ export async function clearBuyerHistory(orderIds: string[]): Promise<void> {
   if (orderIds.length === 0) return;
   const batch = writeBatch(getFirestoreDb());
   for (const id of orderIds) {
-    batch.update(doc(getFirestoreDb(), ORDERS_COLLECTION, id), { hiddenFromBuyerAt: serverTimestamp() });
+    batch.update(doc(getFirestoreDb(), ORDERS_COLLECTION, id), {
+      hiddenFromBuyerAt: serverTimestamp(),
+    });
   }
   await batch.commit();
 }
@@ -257,10 +278,130 @@ export async function clearBuyerHistory(orderIds: string[]): Promise<void> {
 
 const PUSH_TOKENS_COLLECTION = "pushTokens";
 
-export async function savePushToken(uid: string, token: string, email: string | null): Promise<void> {
+export async function savePushToken(
+  uid: string,
+  token: string,
+  email: string | null,
+): Promise<void> {
   await setDoc(
     doc(getFirestoreDb(), PUSH_TOKENS_COLLECTION, uid),
     { token, email, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// User profiles — one doc per signed-in account (keyed by uid), written
+// incrementally by the onboarding flow as the person completes each step,
+// and read to decide whether onboarding needs to run at all.
+// `onboardingComplete` is the single source of truth for that decision —
+// deliberately not "does the doc exist", since a half-finished onboarding
+// (tab closed mid-flow) still has a doc, just with onboardingComplete still
+// false and `lastStep` pointing at wherever they left off, so re-opening the
+// app resumes instead of restarting from the top.
+// ---------------------------------------------------------------------------
+
+const USERS_COLLECTION = "users";
+
+export type OnboardingStep =
+  | "start-button"
+  | "username"
+  | "location"
+  | "phone"
+  | "terms"
+  | "business-question"
+  | "business-name"
+  | "sell-question"
+  | "seller-contact"
+  | "seller-submitted"
+  | "completed";
+
+export type UserProfile = {
+  uid: string;
+  email: string | null;
+  username: string | null;
+  districtId: string | null;
+  districtName: string | null;
+  ward: string | null;
+  phone: string | null;
+  hasAgreedTerms: boolean;
+  ownsBusiness: boolean | null;
+  businessName: string | null;
+  wantsToSell: boolean | null;
+  sellerEmail: string | null;
+  sellerPhone: string | null;
+  theme: "light" | "dark" | null;
+  onboardingComplete: boolean;
+  lastStep: OnboardingStep;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+};
+
+/** Realtime subscription to one account's profile — null until the doc exists. */
+export function subscribeToUserProfile(
+  uid: string,
+  onChange: (profile: UserProfile | null) => void,
+  onError?: (error: unknown) => void,
+) {
+  return onSnapshot(
+    doc(getFirestoreDb(), USERS_COLLECTION, uid),
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onChange(null);
+        return;
+      }
+      onChange({
+        ...(snapshot.data() as Omit<UserProfile, "uid">),
+        uid: snapshot.id,
+      });
+    },
+    onError,
+  );
+}
+
+/**
+ * Creates the profile doc the moment a person authenticates with no existing
+ * profile — stamps `createdAt` exactly once. Safe to call even if the doc
+ * already exists (merge: true just leaves the existing createdAt alone
+ * since we don't pass it again here).
+ */
+export async function ensureUserProfileShell(
+  uid: string,
+  email: string | null,
+): Promise<void> {
+  await setDoc(
+    doc(getFirestoreDb(), USERS_COLLECTION, uid),
+    {
+      uid,
+      email,
+      onboardingComplete: false,
+      lastStep: "start-button" satisfies OnboardingStep,
+      createdAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+/**
+ * Writes one onboarding step's worth of data to the profile doc, merging
+ * rather than overwriting so earlier steps' fields survive. Called after
+ * every step the person completes — not just once at the end — so progress
+ * is never lost if they close the tab partway through. Never touches
+ * `createdAt` (set once, by ensureUserProfileShell above).
+ */
+export async function saveOnboardingStep(
+  uid: string,
+  email: string | null,
+  patch: Partial<Omit<UserProfile, "uid" | "createdAt" | "updatedAt">>,
+): Promise<void> {
+  await setDoc(
+    doc(getFirestoreDb(), USERS_COLLECTION, uid),
+    {
+      uid,
+      email,
+      ...patch,
+      updatedAt: serverTimestamp(),
+    },
     { merge: true },
   );
 }
